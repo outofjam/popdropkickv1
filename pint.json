@@ -1,0 +1,17 @@
+{
+    "preset": "laravel",
+    "exclude": [
+        "storage",
+        "vendor",
+        "node_modules",
+        "tests"
+    ],
+    "rules": {
+        "array_syntax": {
+            "syntax": "short"
+        },
+        "single_quote": true,
+        "no_unused_imports": true,
+        "ordered_imports": true
+    }
+}
