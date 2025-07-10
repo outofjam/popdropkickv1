@@ -11,12 +11,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void
-    {
-        Gate::define('viewApiDocs', static function () {
-            return true;
-        });
-    }
+    public function register(): void {}
 
     /**
      * Bootstrap any application services.
@@ -26,5 +21,8 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }
+        Gate::define('viewApiDocs', static function () {
+            return true;
+        });
     }
 }
