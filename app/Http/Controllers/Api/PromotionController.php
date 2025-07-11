@@ -32,19 +32,7 @@ class PromotionController extends Controller
      *
      * @queryParam per_page int Number of results per page. Defaults to 15. Example: 20
      *
-     * @response 200 {
-     *   "success": true,
-     *   "message": null,
-     *   "data": [
-     *     {
-     *       "id": 1,
-     *       "name": "World Wrestling Alliance",
-     *       "slug": "world-wrestling-alliance",
-     *       "wrestlers_count": 25,
-     *       "championships_count": 4
-     *     }
-     *   ]
-     * }
+     * @response PromotionListResource // 1 - PHPDoc
      */
     public function index(): JsonResponse
     {
@@ -69,24 +57,7 @@ class PromotionController extends Controller
      *
      * @queryParam include_inactive boolean Whether to include inactive wrestlers in the count. Example: true
      *
-     * @response 200 {
-     *   "success": true,
-     *   "message": null,
-     *   "data": {
-     *     "id": 1,
-     *     "name": "World Wrestling Alliance",
-     *     "slug": "world-wrestling-alliance",
-     *     "founded": "1999-04-01",
-     *     "retired": null,
-     *     ...
-     *   },
-     *   "meta": {
-     *     "counts": {
-     *       "active_wrestlers": 18,
-     *       "inactive_wrestlers": 5
-     *     }
-     *   }
-     * }
+     * @response PromotionResource // 1 - PHPDoc
      * @response 404 {
      *   "success": false,
      *   "message": "Promotion not found"
