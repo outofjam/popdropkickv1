@@ -52,7 +52,7 @@ class WrestlerAliasController extends Controller
     {
         $aliases = $this->service->addAliases($wrestler, $request->validated()['aliases']);
         
-        return $this->ok($alias->toArray(), 'Alias added');
+    return $this->ok($aliases, 'Aliases added');
     }
 
     /**
