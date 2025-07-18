@@ -65,12 +65,12 @@ class PromotionController extends Controller
      */
     public function show(string $identifier): JsonResponse
     {
-        $includeInactive = request()->boolean('include_inactive', false);
+        $includeInactive = request()->boolean('include_inactive');
 
         // Fetch promotion with eager loading depending on includeInactive
         $promotion = $this->service->findByIdOrSlug($identifier, $includeInactive);
 
-        if (! $promotion) {
+        if (!$promotion) {
             return $this->error('Promotion not found', 404);
         }
 
@@ -82,7 +82,7 @@ class PromotionController extends Controller
 
         // Build inactive collection only if requested and all wrestlers loaded
         $inactive = ($includeInactive && $all)
-            ? $all->reject(fn ($wrestler) => $active->contains('id', $wrestler->getKey()))
+            ? $all->reject(fn($wrestler) => $active->contains('id', $wrestler->getKey()))
             : collect();
 
         // Get active count consistently
@@ -106,11 +106,11 @@ class PromotionController extends Controller
                 'inactive_wrestlers' => $inactive->count(),
             ],
             'inactive_wrestlers_included' => $includeInactive,
-            'inactive_wrestlers_exist' => $inactiveExist && ! $includeInactive,
+            'inactive_wrestlers_exist' => $inactiveExist,
         ];
 
 // Add hint only if inactive wrestlers exist but are not included
-        if ($inactiveExist && ! $includeInactive) {
+        if ($inactiveExist && !$includeInactive) {
             $meta['inactive_wrestlers_hint'] = 'Add ?include_inactive=true to see inactive wrestlers';
         }
 
@@ -119,10 +119,7 @@ class PromotionController extends Controller
             null,
             $meta
         );
-
     }
-
-
 
 
     /**
