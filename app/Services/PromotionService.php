@@ -27,7 +27,7 @@ class PromotionService
         ];
 
         if ($includeInactive) {
-            $with[] = 'wrestlers:id,name,slug'; // or include 'names' if needed
+            $with[] = 'wrestlers.names';  // eager load relation, not a column
         }
 
         return Promotion::with($with)

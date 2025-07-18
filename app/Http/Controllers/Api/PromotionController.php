@@ -39,7 +39,7 @@ class PromotionController extends Controller
         // You can get perPage from request query, fallback to 15
         $perPage = request()->query('per_page', 5);
 
-        $promotions = $this->service->getPaginatedWithCounts((int) $perPage);
+        $promotions = $this->service->getPaginatedWithCounts((int)$perPage);
 
         return $this->ok(PromotionListResource::collection($promotions));
     }
@@ -69,24 +69,17 @@ class PromotionController extends Controller
 
         $promotion = $this->service->findByIdOrSlug($identifier, $includeInactive);
 
-        if (! $promotion) {
+        if (!$promotion) {
             return $this->error('Promotion not found', 404);
         }
-
-        dd([
-            'active_count' => $promotion->activeWrestlers->count(),
-            'all_count' => $promotion->wrestlers->count(),
-            'active_ids' => $promotion->activeWrestlers->pluck('id')->toArray(),
-            'all_ids' => $promotion->wrestlers->pluck('id')->toArray(),
-        ]);
-
+        
 
         $hasActive = $promotion->relationLoaded('activeWrestlers');
         $hasAll = $promotion->relationLoaded('wrestlers');
 
         $active = $hasActive ? $promotion->activeWrestlers : collect();
         $inactive = ($includeInactive && $hasAll)
-            ? $promotion->wrestlers->reject(static fn ($wrestler) => $active->contains('id', $wrestler->getKey()))
+            ? $promotion->wrestlers->reject(static fn($wrestler) => $active->contains('id', $wrestler->getKey()))
             : collect();
 
         return $this->success(
@@ -99,7 +92,6 @@ class PromotionController extends Controller
                 ],
             ]
         );
-
     }
 
     /**
