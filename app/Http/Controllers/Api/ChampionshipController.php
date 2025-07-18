@@ -4,18 +4,25 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreChampionshipRequest;
+use App\Http\Requests\UpdateChampionshipRequest;
 use App\Http\Resources\ChampionshipResource;
 use App\Models\Championship;
 use App\Models\Promotion;
 use App\Services\ChampionshipService;
 use App\Traits\ApiResponses;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class ChampionshipController extends Controller
 {
     use ApiResponses;
 
-    public function __construct(protected ChampionshipService $championshipService) {}
+    protected ChampionshipService $service;
+
+    public function __construct(ChampionshipService $service)
+    {
+        $this->service = $service;
+    }
 
     /**
      * Create a new championship for a promotion
@@ -49,7 +56,8 @@ class ChampionshipController extends Controller
     {
         $data = $request->validated();
 
-        $championship = $this->championshipService->createChampionship($promotion, $data);
+        $championship = $this->service->createChampionship($promotion, $data);
+        Log::info('Updated championship:', $championship->toArray());
 
         return $this->success($championship, 'Championship Created', null, 201);
     }
@@ -116,8 +124,8 @@ class ChampionshipController extends Controller
             ])
             ->first();
 
-        if (! $championship) {
-            return response()->json(['message' => 'Championship not found'], 404);
+        if (!$championship) {
+            return $this->error('Championship not found', 404);
         }
 
         $titleReignsCount = $championship->titleReigns->count();
@@ -128,4 +136,20 @@ class ChampionshipController extends Controller
             ['counts' => ['title_reigns' => $titleReignsCount]]
         );
     }
+
+
+    public function update(UpdateChampionshipRequest $request, Championship $championship): JsonResponse
+    {
+        $updatedChampionship = $this->service->updateChampionship($championship, $request->validated());
+
+        return $this->success($updatedChampionship, 'Championship updated successfully');
+    }
+
+    public function toggleActive(Championship $championship): JsonResponse
+    {
+        $updatedChampionship = $this->service->toggleActiveStatus($championship);
+
+        return $this->success($updatedChampionship, 'Championship active status toggled');
+    }
+
 }

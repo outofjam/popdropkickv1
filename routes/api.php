@@ -36,6 +36,13 @@ Route::middleware('auth:sanctum')->group(function () {
         'championships.store'
     );
 
+    // Update full championship details (PUT or PATCH both acceptable)
+    Route::match(['put', 'patch'], '/championships/{championship}', [ChampionshipController::class, 'update'])->name('championships.update');
+
+    // Toggle championship active/inactive (simplified PATCH if needed)
+    Route::patch('/championships/{championship}/toggle-active', [ChampionshipController::class, 'toggleActive'])->name('championships.toggleActive');
+
+
     // Title reigns
     Route::post('/wrestlers/{wrestler}/title-reigns', [TitleReignController::class, 'store']);
     Route::patch('/title-reigns/{reign}', [TitleReignController::class, 'update']);

@@ -19,7 +19,7 @@ class StoreChampionshipRequest extends FormRequest
             'division' => ['nullable', 'string', 'max:100'],
             'introduced_at' => ['nullable', 'date'],
             'weight_class' => ['nullable', 'string', 'max:100'],
-            'active' => ['boolean'],
+            'active' => ['sometimes', 'boolean'],
         ];
     }
 }

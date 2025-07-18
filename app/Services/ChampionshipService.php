@@ -14,4 +14,17 @@ class ChampionshipService
     {
         return $promotion->championships()->create($data);
     }
+
+    public function updateChampionship(Championship $championship, array $data): Championship
+    {
+        $championship->update($data);
+        return $championship->fresh();
+    }
+
+    public function toggleActiveStatus(Championship $championship): Championship
+    {
+        $championship->active = !$championship->active;
+        $championship->save();
+        return $championship->fresh();
+    }
 }
