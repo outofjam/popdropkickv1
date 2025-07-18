@@ -80,10 +80,6 @@ class PromotionController extends Controller
         // Get all wrestlers collection if loaded
         $all = $promotion->relationLoaded('wrestlers') ? $promotion->wrestlers : null;
 
-        // Build inactive collection only if requested and all wrestlers loaded
-        $inactive = ($includeInactive && $all)
-            ? $all->reject(fn($wrestler) => $active->contains('id', $wrestler->getKey()))
-            : collect();
 
         // Get active count consistently
         $activeCount = $promotion->relationLoaded('activeWrestlers')
@@ -103,13 +99,13 @@ class PromotionController extends Controller
         $meta = [
             'counts' => [
                 'active_wrestlers' => $active->count(),
-                'inactive_wrestlers' => $inactive->count(),
+                'inactive_wrestlers' => $inactiveCount,
             ],
             'inactive_wrestlers_included' => $includeInactive,
             'inactive_wrestlers_exist' => $inactiveExist,
         ];
 
-// Add hint only if inactive wrestlers exist but are not included
+        // Add hint only if inactive wrestlers exist but are not included
         if ($inactiveExist && !$includeInactive) {
             $meta['inactive_wrestlers_hint'] = 'Add ?include_inactive=true to see inactive wrestlers';
         }
