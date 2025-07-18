@@ -45,4 +45,21 @@ class PromotionService
 
         return $promotion;
     }
+
+    public function getWrestlerCounts(Promotion $promotion): array
+    {
+        // Try to use loaded relationships first to avoid extra queries
+        $active = $promotion->relationLoaded('activeWrestlers') ? $promotion->activeWrestlers : null;
+        $all = $promotion->relationLoaded('wrestlers') ? $promotion->wrestlers : null;
+
+        $activeCount = $active ? $active->count() : $promotion->activeWrestlers()->count();
+        $totalCount = $all ? $all->count() : $promotion->wrestlers()->count();
+        $inactiveCount = $totalCount - $activeCount;
+
+        return [
+            'active' => $activeCount,
+            'inactive' => $inactiveCount,
+        ];
+    }
+
 }

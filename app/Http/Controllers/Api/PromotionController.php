@@ -67,46 +67,24 @@ class PromotionController extends Controller
     {
         $includeInactive = request()->boolean('include_inactive');
 
-        // Fetch promotion with eager loading depending on includeInactive
         $promotion = $this->service->findByIdOrSlug($identifier, $includeInactive);
 
         if (!$promotion) {
             return $this->error('Promotion not found', 404);
         }
 
-        // Get active wrestlers collection (should be eager loaded)
-        $active = $promotion->relationLoaded('activeWrestlers') ? $promotion->activeWrestlers : collect();
-
-        // Get all wrestlers collection if loaded
-        $all = $promotion->relationLoaded('wrestlers') ? $promotion->wrestlers : null;
-
-
-        // Get active count consistently
-        $activeCount = $promotion->relationLoaded('activeWrestlers')
-            ? $promotion->activeWrestlers->count()
-            : $promotion->activeWrestlers()->count();
-
-        // Detect if inactive wrestlers exist using counts
-        if ($all) {
-            $inactiveCount = $all->count() - $activeCount;
-        } else {
-            // Use relationship count methods to avoid loading full collection
-            $inactiveCount = $promotion->wrestlers()->count() - $promotion->activeWrestlers()->count();
-        }
-
-        $inactiveExist = $inactiveCount > 0;
+        $counts = $this->service->getWrestlerCounts($promotion);
 
         $meta = [
             'counts' => [
-                'active_wrestlers' => $active->count(),
-                'inactive_wrestlers' => $inactiveCount,
+                'active_wrestlers' => $counts['active'],
+                'inactive_wrestlers' => $counts['inactive'],
             ],
             'inactive_wrestlers_included' => $includeInactive,
-            'inactive_wrestlers_exist' => $inactiveExist,
         ];
 
-        // Add hint only if inactive wrestlers exist but are not included
-        if ($inactiveExist && !$includeInactive) {
+        if ($counts['inactive'] > 0 && !$includeInactive) {
+            $meta['inactive_wrestlers_exist'] = true;
             $meta['inactive_wrestlers_hint'] = 'Add ?include_inactive=true to see inactive wrestlers';
         }
 
@@ -116,6 +94,7 @@ class PromotionController extends Controller
             $meta
         );
     }
+
 
 
     /**
