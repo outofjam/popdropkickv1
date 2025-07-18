@@ -19,10 +19,10 @@ class StoreWrestlerRequest extends FormRequest
             'country' => ['nullable', 'string', 'max:100'],
 
             'promotions' => ['required', 'array'],
-            'promotions.*' => ['uuid', 'exists:promotions,id'],
+            'promotions.*' => ['required', 'string', 'max:255'], // no longer 'exists'
 
             'active_promotions' => ['nullable', 'array'],
-            'active_promotions.*' => ['uuid', 'exists:promotions,id'],
+            'active_promotions.*' => ['required', 'string', 'max:255'], // same
 
             'aliases' => ['required', 'array', 'min:1'],
             'aliases.*.name' => ['required', 'string', 'max:255'],
@@ -46,12 +46,18 @@ class StoreWrestlerRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $aliases = $this->input('aliases', []);
-
             $hasPrimary = collect($aliases)->contains(static fn ($alias) => isset($alias['is_primary']) && $alias['is_primary'] === true);
 
             if (! $hasPrimary) {
                 $validator->errors()->add('aliases', 'At least one alias must be marked as primary.');
             }
+
+            // Optional: warn if all promotions are unresolvable
+            $promoInputs = collect($this->input('promotions', []))->filter()->unique();
+            if ($promoInputs->isEmpty()) {
+                $validator->errors()->add('promotions', 'At least one promotion identifier is required.');
+            }
         });
     }
+
 }
