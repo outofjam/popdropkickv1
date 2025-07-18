@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PromotionResource\RelationManagers;
 
+use App\Models\Wrestler;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -14,22 +15,21 @@ class WrestlersRelationManager extends RelationManager
     protected static string $relationship = 'wrestlers';
 
 
-
-
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('slug')
+                Forms\Components\Select::make('name')
                     ->required()
-                    ->maxLength(255),
+                    ->options(Wrestler::all()->pluck('name', 'id'))
+                    ->searchable(),
             ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('primaryName'))
+            ->modifyQueryUsing(fn(Builder $query) => $query->with('primaryName'))
             ->recordTitleAttribute('slug')
             ->columns([
                 Tables\Columns\TextColumn::make('slug'),

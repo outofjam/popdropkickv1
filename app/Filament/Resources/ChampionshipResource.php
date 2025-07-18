@@ -3,15 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ChampionshipResource\Pages;
-use App\Filament\Resources\ChampionshipResource\RelationManagers;
+
+use App\Helpers\FilamentHelpers;
 use App\Models\Championship;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ChampionshipResource extends Resource
 {
@@ -36,8 +35,8 @@ class ChampionshipResource extends Resource
                 Forms\Components\TextInput::make('weight_class'),
                 Forms\Components\Toggle::make('active')
                     ->required(),
-                Forms\Components\TextInput::make('created_by'),
-                Forms\Components\TextInput::make('updated_by'),
+                FilamentHelpers::userDisplayField('created_by', 'Created By'),
+                FilamentHelpers::userDisplayField('updated_by', 'Updated By'),
             ]);
     }
 
@@ -47,13 +46,17 @@ class ChampionshipResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 Tables\Columns\TextColumn::make('slug')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 Tables\Columns\TextColumn::make('promotion.name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('abbreviation')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('division')
@@ -73,16 +76,18 @@ class ChampionshipResource extends Resource
                     ->searchable(),
                 Tables\Columns\IconColumn::make('active')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('created_by')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('updated_by')
-                    ->searchable(),
+                FilamentHelpers::userDisplayColumn('created_by', 'Created By')->toggleable(
+                    isToggledHiddenByDefault: true
+                ),
+                FilamentHelpers::userDisplayColumn('updated_by', 'Updated By')->toggleable(
+                    isToggledHiddenByDefault: true
+                ),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+//                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

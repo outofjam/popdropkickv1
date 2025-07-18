@@ -3,26 +3,23 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PromotionResource\Pages;
-use App\Filament\Resources\PromotionResource\RelationManagers;
 use App\Filament\Resources\PromotionResource\RelationManagers\ActiveChampionshipsRelationManager;
 use App\Filament\Resources\PromotionResource\RelationManagers\ActiveWrestlersRelationManager;
 use App\Filament\Resources\PromotionResource\RelationManagers\ChampionshipsRelationManager;
 use App\Filament\Resources\PromotionResource\RelationManagers\WrestlersRelationManager;
+use App\Helpers\FilamentHelpers;
 use App\Models\Promotion;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PromotionResource extends Resource
 {
     protected static ?string $model = Promotion::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
 
 
     public static function form(Form $form): Form
@@ -32,11 +29,11 @@ class PromotionResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required(),
                 Forms\Components\TextInput::make('slug')
-                    ->required(),
+                    ->disabled(),
                 Forms\Components\TextInput::make('abbreviation'),
                 Forms\Components\TextInput::make('country'),
-                Forms\Components\TextInput::make('created_by')->readOnly(),
-                Forms\Components\TextInput::make('updated_by')->readOnly(),
+                FilamentHelpers::userDisplayField('created_by', 'Created By'),
+                FilamentHelpers::userDisplayField('updated_by', 'Updated By'),
             ]);
     }
 
@@ -46,10 +43,12 @@ class PromotionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('slug')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 Tables\Columns\TextColumn::make('abbreviation')
                     ->searchable(),
@@ -63,10 +62,12 @@ class PromotionResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('created_by')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('updated_by')
-                    ->searchable(),
+                FilamentHelpers::userDisplayColumn('created_by', 'Created By')->toggleable(
+                    isToggledHiddenByDefault: true
+                ),
+                FilamentHelpers::userDisplayColumn('updated_by', 'Updated By')->toggleable(
+                    isToggledHiddenByDefault: true
+                ),
             ])
             ->filters([
                 //

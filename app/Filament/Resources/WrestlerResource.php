@@ -7,6 +7,7 @@ use App\Filament\Resources\WrestlerResource\RelationManagers\ActivePromotionsRel
 use App\Filament\Resources\WrestlerResource\RelationManagers\NamesRelationManager;
 use App\Filament\Resources\WrestlerResource\RelationManagers\PromotionsRelationManager;
 use App\Filament\Resources\WrestlerResource\RelationManagers\TitleReignsRelationManager;
+use App\Helpers\FilamentHelpers;
 use App\Models\Wrestler;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -25,12 +26,12 @@ class WrestlerResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('slug')
-                    ->required(),
+                    ->disabled(),
                 Forms\Components\TextInput::make('real_name'),
                 Forms\Components\DatePicker::make('debut_date'),
                 Forms\Components\TextInput::make('country'),
-                Forms\Components\TextInput::make('created_by')->readOnly(),
-                Forms\Components\TextInput::make('updated_by')->readOnly(),
+                FilamentHelpers::userDisplayField('created_by', 'Created By'),
+                FilamentHelpers::userDisplayField('updated_by', 'Updated By'),
             ]);
     }
 
@@ -40,10 +41,14 @@ class WrestlerResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
+                Tables\Columns\TextColumn::make('primaryName.name')
+                    ->label('Name')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('slug')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('ring_name')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 Tables\Columns\TextColumn::make('real_name')
                     ->searchable(),
@@ -60,10 +65,12 @@ class WrestlerResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('created_by')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('updated_by')
-                    ->searchable(),
+                FilamentHelpers::userDisplayColumn('created_by', 'Created By')->toggleable(
+                    isToggledHiddenByDefault: true
+                ),
+                FilamentHelpers::userDisplayColumn('updated_by', 'Updated By')->toggleable(
+                    isToggledHiddenByDefault: true
+                ),
             ])
             ->filters([
                 //
@@ -96,4 +103,7 @@ class WrestlerResource extends Resource
             'edit' => Pages\EditWrestler::route('/{record}/edit'),
         ];
     }
+
+
+
 }

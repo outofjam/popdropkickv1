@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PromotionResource\RelationManagers;
 
+use App\Models\Wrestler;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -17,9 +18,10 @@ class ActiveWrestlersRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('slug')
+                Forms\Components\Select::make('name')
                     ->required()
-                    ->maxLength(255),
+                    ->options(Wrestler::all()->pluck('name', 'id'))
+                    ->searchable(),
             ]);
     }
 

@@ -2,13 +2,11 @@
 
 namespace App\Filament\Resources\WrestlerResource\RelationManagers;
 
-use Filament\Forms;
+use App\Filament\Actions\AttachPromotionAction;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PromotionsRelationManager extends RelationManager
 {
@@ -18,9 +16,7 @@ class PromotionsRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('slug')
-                    ->required()
-                    ->maxLength(255),
+                // Remove this - AttachAction handles it
             ]);
     }
 
@@ -30,20 +26,34 @@ class PromotionsRelationManager extends RelationManager
             ->recordTitleAttribute('name')
             ->columns([
                 Tables\Columns\TextColumn::make('name'),
+                Tables\Columns\ToggleColumn::make('is_active')
+                    ->label('Active')
+                    ->getStateUsing(function ($record) {
+                        return $this->ownerRecord->activePromotions()->where('promotion_id', $record->id)->exists();
+                    })
+                    ->updateStateUsing(function ($record, $state) {
+                        if ($state) {
+                            // Add to active promotions
+                            $this->ownerRecord->activePromotions()->syncWithoutDetaching([$record->id]);
+                        } else {
+                            // Remove from active promotions
+                            $this->ownerRecord->activePromotions()->detach($record->id);
+                        }
+                    }),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                AttachPromotionAction::make()->forPromotions(),
             ])
             ->actions([
 //                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DetachAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DetachBulkAction::make(),
                 ]),
             ]);
     }
