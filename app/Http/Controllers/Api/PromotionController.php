@@ -69,18 +69,19 @@ class PromotionController extends Controller
 
         $promotion = $this->service->findByIdOrSlug($identifier, $includeInactive);
 
-        if (!$promotion) {
+        if (! $promotion) {
             return $this->error('Promotion not found', 404);
         }
-        
 
         $hasActive = $promotion->relationLoaded('activeWrestlers');
         $hasAll = $promotion->relationLoaded('wrestlers');
 
         $active = $hasActive ? $promotion->activeWrestlers : collect();
         $inactive = ($includeInactive && $hasAll)
-            ? $promotion->wrestlers->reject(static fn($wrestler) => $active->contains('id', $wrestler->getKey()))
+            ? $promotion->wrestlers->reject(fn ($wrestler) => $active->contains('id', $wrestler->getKey()))
             : collect();
+
+        $inactiveExist = $hasAll && $promotion->wrestlers->count() > $active->count();
 
         return $this->success(
             new PromotionResource($promotion),
@@ -90,9 +91,15 @@ class PromotionController extends Controller
                     'active_wrestlers' => $active->count(),
                     'inactive_wrestlers' => $inactive->count(),
                 ],
+                'inactive_wrestlers_included' => $includeInactive,
+                'inactive_wrestlers_exist' => $inactiveExist && ! $includeInactive,
+                'inactive_wrestlers_hint' => $inactiveExist && ! $includeInactive
+                    ? 'Add ?include_inactive=true to see inactive wrestlers'
+                    : null,
             ]
         );
     }
+
 
     /**
      * Create a new promotion
