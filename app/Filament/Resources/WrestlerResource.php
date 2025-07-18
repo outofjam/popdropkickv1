@@ -65,12 +65,12 @@ class WrestlerResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                FilamentHelpers::userDisplayColumn('created_by', 'Created By')->toggleable(
-                    isToggledHiddenByDefault: true
-                ),
-                FilamentHelpers::userDisplayColumn('updated_by', 'Updated By')->toggleable(
-                    isToggledHiddenByDefault: true
-                ),
+                FilamentHelpers::userDisplayColumn('created_by', 'Created By')
+                    ->searchable(false) // Disable search on this column
+                    ->toggleable(isToggledHiddenByDefault: true),
+                FilamentHelpers::userDisplayColumn('updated_by', 'Updated By')
+                    ->searchable(false) // Disable search on this column
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
@@ -103,7 +103,6 @@ class WrestlerResource extends Resource
             'edit' => Pages\EditWrestler::route('/{record}/edit'),
         ];
     }
-
 
 
 }
