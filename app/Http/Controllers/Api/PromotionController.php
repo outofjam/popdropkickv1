@@ -73,6 +73,14 @@ class PromotionController extends Controller
             return $this->error('Promotion not found', 404);
         }
 
+        dd([
+            'active_count' => $promotion->activeWrestlers->count(),
+            'all_count' => $promotion->wrestlers->count(),
+            'active_ids' => $promotion->activeWrestlers->pluck('id')->toArray(),
+            'all_ids' => $promotion->wrestlers->pluck('id')->toArray(),
+        ]);
+
+
         $hasActive = $promotion->relationLoaded('activeWrestlers');
         $hasAll = $promotion->relationLoaded('wrestlers');
 
