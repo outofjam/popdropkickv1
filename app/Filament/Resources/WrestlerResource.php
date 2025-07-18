@@ -14,6 +14,9 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Builder;
+
 
 class WrestlerResource extends Resource
 {
@@ -55,13 +58,13 @@ class WrestlerResource extends Resource
                 Tables\Columns\TextColumn::make('debut_date')
                     ->date()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('country')
+                TextColumn::make('country')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -71,6 +74,10 @@ class WrestlerResource extends Resource
                 FilamentHelpers::userDisplayColumn('updated_by', 'Updated By')
                     ->searchable(false) // Disable search on this column
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('names.name')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->label('All Names'),
             ])
             ->filters([
                 //
@@ -82,7 +89,13 @@ class WrestlerResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])->modifyQueryUsing(function (Builder $query) {
+                return $query->select(['id', 'slug', 'real_name', 'debut_date', 'country', 'created_at', 'updated_at'])
+                    ->with(['primaryName:id,wrestler_id,name,is_primary']);
+            })
+            ->deferLoading() // Load table data only when needed
+            ->searchable() // Enable global search
+            ->searchOnBlur(); // Optional: search as you type vs on blur
     }
 
     public static function getRelations(): array
