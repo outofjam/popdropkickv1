@@ -27,7 +27,7 @@ class PromotionService
         ];
 
         if ($includeInactive) {
-            $with[] = 'wrestlers:id,slug'; // or include 'names' if needed
+            $with[] = 'wrestlers:id,name,slug'; // or include 'names' if needed
         }
 
         return Promotion::with($with)
