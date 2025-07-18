@@ -213,6 +213,14 @@ class WrestlerService
         }
     }
 
+    public function addAliases(Wrestler $wrestler, array $aliases): array
+{
+    return collect($aliases)->map(function ($data) use ($wrestler) {
+        return $this->addAlias($wrestler, $data);
+    })->all();
+}
+
+
     public function addAlias(Wrestler $wrestler, array $data): WrestlerName
     {
         $data['is_primary'] = (bool) ($data['is_primary'] ?? false);

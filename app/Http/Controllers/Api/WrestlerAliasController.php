@@ -50,9 +50,9 @@ class WrestlerAliasController extends Controller
      */
     public function store(WrestlerAliasRequest $request, Wrestler $wrestler): JsonResponse
     {
-        $alias = $this->service->addAlias($wrestler, $request->validated());
-
-        return $this->ok($alias->toArray(), 'Alias added');
+        $aliases = $this->service->addAliases($wrestler, $request->validated()['aliases']);
+        
+    return $this->ok($aliases, 'Aliases added');
     }
 
     /**
