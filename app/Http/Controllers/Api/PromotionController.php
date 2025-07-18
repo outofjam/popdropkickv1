@@ -65,40 +65,64 @@ class PromotionController extends Controller
      */
     public function show(string $identifier): JsonResponse
     {
-        $includeInactive = request()->boolean('include_inactive');
+        $includeInactive = request()->boolean('include_inactive', false);
 
+        // Fetch promotion with eager loading depending on includeInactive
         $promotion = $this->service->findByIdOrSlug($identifier, $includeInactive);
 
         if (! $promotion) {
             return $this->error('Promotion not found', 404);
         }
 
-        $hasActive = $promotion->relationLoaded('activeWrestlers');
-        $hasAll = $promotion->relationLoaded('wrestlers');
+        // Get active wrestlers collection (should be eager loaded)
+        $active = $promotion->relationLoaded('activeWrestlers') ? $promotion->activeWrestlers : collect();
 
-        $active = $hasActive ? $promotion->activeWrestlers : collect();
-        $inactive = ($includeInactive && $hasAll)
-            ? $promotion->wrestlers->reject(fn ($wrestler) => $active->contains('id', $wrestler->getKey()))
+        // Get all wrestlers collection if loaded
+        $all = $promotion->relationLoaded('wrestlers') ? $promotion->wrestlers : null;
+
+        // Build inactive collection only if requested and all wrestlers loaded
+        $inactive = ($includeInactive && $all)
+            ? $all->reject(fn ($wrestler) => $active->contains('id', $wrestler->getKey()))
             : collect();
 
-        $inactiveExist = $hasAll && $promotion->wrestlers->count() > $active->count();
+        // Get active count consistently
+        $activeCount = $promotion->relationLoaded('activeWrestlers')
+            ? $promotion->activeWrestlers->count()
+            : $promotion->activeWrestlers()->count();
+
+        // Detect if inactive wrestlers exist using counts
+        if ($all) {
+            $inactiveCount = $all->count() - $activeCount;
+        } else {
+            // Use relationship count methods to avoid loading full collection
+            $inactiveCount = $promotion->wrestlers()->count() - $promotion->activeWrestlers()->count();
+        }
+
+        $inactiveExist = $inactiveCount > 0;
+
+        $meta = [
+            'counts' => [
+                'active_wrestlers' => $active->count(),
+                'inactive_wrestlers' => $inactive->count(),
+            ],
+            'inactive_wrestlers_included' => $includeInactive,
+            'inactive_wrestlers_exist' => $inactiveExist && ! $includeInactive,
+        ];
+
+// Add hint only if inactive wrestlers exist but are not included
+        if ($inactiveExist && ! $includeInactive) {
+            $meta['inactive_wrestlers_hint'] = 'Add ?include_inactive=true to see inactive wrestlers';
+        }
 
         return $this->success(
             new PromotionResource($promotion),
             null,
-            [
-                'counts' => [
-                    'active_wrestlers' => $active->count(),
-                    'inactive_wrestlers' => $inactive->count(),
-                ],
-                'inactive_wrestlers_included' => $includeInactive,
-                'inactive_wrestlers_exist' => $inactiveExist && ! $includeInactive,
-                'inactive_wrestlers_hint' => $inactiveExist && ! $includeInactive
-                    ? 'Add ?include_inactive=true to see inactive wrestlers'
-                    : null,
-            ]
+            $meta
         );
+
     }
+
+
 
 
     /**
