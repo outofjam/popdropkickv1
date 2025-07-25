@@ -30,16 +30,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/change-requests/bulk-approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'bulkApprove']);
 });
 
-
-// Change request routes (for moderators/admins)
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/change-requests', [App\Http\Controllers\Api\ChangeRequestController::class, 'index']);
-    Route::get('/change-requests/{changeRequest}', [App\Http\Controllers\Api\ChangeRequestController::class, 'show']);
-    Route::post('/change-requests/{changeRequest}/approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'approve']);
-    Route::post('/change-requests/{changeRequest}/reject', [App\Http\Controllers\Api\ChangeRequestController::class, 'reject']);
-    Route::post('/change-requests/bulk-approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'bulkApprove']);
-});
-
 // Protected routes requiring authentication
 Route::middleware('auth:sanctum')->group(function () {
     // Wrestlers
@@ -57,7 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     );
 
     // Update full championship details (PUT or PATCH both acceptable)
-    Route::match(['put', 'patch'], '/championships/{identifier}', [ChampionshipController::class, 'update'])->name('championships.update');
+    Route::match(['put', 'patch'], '/championships/{championship}', [ChampionshipController::class, 'update'])->name('championships.update');
 
     // Toggle championship active/inactive (simplified PATCH if needed)
     Route::patch('/championships/{championship}/toggle-active', [ChampionshipController::class, 'toggleActive'])->name('championships.toggleActive');
