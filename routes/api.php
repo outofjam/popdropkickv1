@@ -30,26 +30,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/change-requests/bulk-approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'bulkApprove']);
 });
 
-
-// Change request routes (for moderators/admins)
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/change-requests', [App\Http\Controllers\Api\ChangeRequestController::class, 'index']);
-    Route::get('/change-requests/{changeRequest}', [App\Http\Controllers\Api\ChangeRequestController::class, 'show']);
-    Route::post('/change-requests/{changeRequest}/approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'approve']);
-    Route::post('/change-requests/{changeRequest}/reject', [App\Http\Controllers\Api\ChangeRequestController::class, 'reject']);
-    Route::post('/change-requests/bulk-approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'bulkApprove']);
-});
-
-
-// Change request routes (for moderators/admins)
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/change-requests', [App\Http\Controllers\Api\ChangeRequestController::class, 'index']);
-    Route::get('/change-requests/{changeRequest}', [App\Http\Controllers\Api\ChangeRequestController::class, 'show']);
-    Route::post('/change-requests/{changeRequest}/approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'approve']);
-    Route::post('/change-requests/{changeRequest}/reject', [App\Http\Controllers\Api\ChangeRequestController::class, 'reject']);
-    Route::post('/change-requests/bulk-approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'bulkApprove']);
-});
-
 // Protected routes requiring authentication
 Route::middleware('auth:sanctum')->group(function () {
     // Wrestlers

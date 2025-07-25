@@ -2,9 +2,12 @@
 
 namespace App\Providers\Filament;
 
+<<<<<<< HEAD
 use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
+=======
+>>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
 use App\Filament\Widgets\ChangeRequestStatsWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -37,12 +40,17 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                Dashboard::class,
+                Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
+<<<<<<< HEAD
                 AccountWidget::class,
                 FilamentInfoWidget::class,
+=======
+                Widgets\AccountWidget::class,
+                Widgets\FilamentInfoWidget::class,
+>>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
                 ChangeRequestStatsWidget::class,
             ])
             ->middleware([
