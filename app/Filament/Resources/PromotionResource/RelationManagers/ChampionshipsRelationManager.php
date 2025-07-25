@@ -2,13 +2,11 @@
 
 namespace App\Filament\Resources\PromotionResource\RelationManagers;
 
-use Filament\Forms;
+use App\Models\Championship;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ChampionshipsRelationManager extends RelationManager
 {
@@ -17,11 +15,9 @@ class ChampionshipsRelationManager extends RelationManager
     public function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\TextInput::make('slug')
-                    ->required()
-                    ->maxLength(255),
-            ]);
+            ->schema(
+                Championship::getForm()
+            );
     }
 
     public function table(Table $table): Table

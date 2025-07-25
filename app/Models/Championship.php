@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\FilamentHelpers;
 use App\Traits\TracksCreatedAndUpdated;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Filament\Forms;
+
 
 /**
  * @method static Model|static create(array $attributes = [])
@@ -32,6 +35,26 @@ class Championship extends Model
         'weight_class',
         'active',
     ];
+
+    public static function getForm(): array
+    {
+        return [
+
+            Forms\Components\TextInput::make('slug')
+                ->disabled(),
+
+            Forms\Components\TextInput::make('name')
+                ->required(),
+            Forms\Components\TextInput::make('abbreviation'),
+            Forms\Components\TextInput::make('division'),
+            Forms\Components\DatePicker::make('introduced_at'),
+            Forms\Components\TextInput::make('weight_class'),
+            Forms\Components\Toggle::make('active')
+                ->required(),
+            FilamentHelpers::userDisplayField('created_by', 'Created By'),
+            FilamentHelpers::userDisplayField('updated_by', 'Updated By')
+        ];
+    }
 
     protected $casts = [
         'introduced_at' => 'date',
