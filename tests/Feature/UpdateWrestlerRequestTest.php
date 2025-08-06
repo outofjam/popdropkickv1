@@ -14,7 +14,10 @@ class UpdateWrestlerRequestTest extends TestCase
 
     public function test_update_wrestler_partial_fields_and_aliases_and_promotions(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'role' => 'trusted',
+            'reputation_score' => 150, // above the 100 threshold
+        ]);
         $this->actingAs($user, 'sanctum'); // or just actingAs($user) if no guard
 
         $promotion1 = Promotion::factory()->create();
