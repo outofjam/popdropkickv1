@@ -2,9 +2,13 @@
 
 namespace App\Services;
 
+use App\ChangeRequestHandlers\ChampionshipChangeRequestHandler;
+use App\ChangeRequestHandlers\PromotionChangeRequestHandler;
+use App\ChangeRequestHandlers\WrestlerChangeRequestHandler;
+use App\ChangeRequestHandlers\WrestlerNameChangeRequestHandler;
+use App\Contracts\ChangeRequestHandlerInterface;
 use App\Models\ChangeRequest;
 use App\Models\User;
-use App\Models\Wrestler;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -12,11 +16,28 @@ use Throwable;
 
 class ChangeRequestService
 {
-    protected WrestlerService $wrestlerService;
+    public function __construct(
+        protected WrestlerChangeRequestHandler $wrestlerHandler,
+        protected PromotionChangeRequestHandler $promotionHandler,
+        protected WrestlerNameChangeRequestHandler $wrestlerNameHandler,
+        protected ChampionshipChangeRequestHandler $championshipHandler,
+        // Inject others later
+    ) {
+    }
 
-    public function __construct(WrestlerService $wrestlerService)
+
+    /**
+     * @throws Exception
+     */
+    protected function resolveHandler(string $modelType): ChangeRequestHandlerInterface
     {
-        $this->wrestlerService = $wrestlerService;
+        return match ($modelType) {
+            'wrestler' => $this->wrestlerHandler,
+            'promotion' => $this->promotionHandler,
+            'wrestler_name' => $this->wrestlerNameHandler,
+            'championship' => $this->championshipHandler,
+            default => throw new Exception("Unsupported model type: {$modelType}"),
+        };
     }
 
     public function create(array $data): ChangeRequest
@@ -36,14 +57,9 @@ class ChangeRequestService
         DB::beginTransaction();
 
         try {
-            // Execute the actual change
-            $result = match($changeRequest->action) {
-                'create' => $this->executeCreate($changeRequest),
-                'update' => $this->executeUpdate($changeRequest),
-                'delete' => $this->executeDelete($changeRequest),
-            };
+            $handler = $this->resolveHandler($changeRequest->model_type);
+            $result = $handler->handle($changeRequest);
 
-            // Update the change request
             $changeRequest->update([
                 'status' => 'approved',
                 'reviewer_id' => auth()->id(),
@@ -51,12 +67,10 @@ class ChangeRequestService
                 'reviewer_comments' => $reviewData['comments'] ?? null
             ]);
 
-            // Update user reputation
             $this->updateUserReputation($changeRequest->user, 'approved');
 
             DB::commit();
             return $result;
-
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
@@ -94,48 +108,9 @@ class ChangeRequestService
         return $diff;
     }
 
-    /**
-     * @throws Exception
-     */
-    protected function executeCreate(ChangeRequest $changeRequest): mixed
-    {
-        return match($changeRequest->model_type) {
-            'wrestler' => $this->wrestlerService->create($changeRequest->data),
-            // Add other model types as you implement them
-            default => throw new Exception("Unsupported model type: {$changeRequest->model_type}"),
-        };
-    }
-
-    /**
-     * @throws Exception
-     */
-    protected function executeUpdate(ChangeRequest $changeRequest): mixed
-    {
-        return match($changeRequest->model_type) {
-            'wrestler' => $this->wrestlerService->update(
-                Wrestler::findOrFail($changeRequest->model_id),
-                $changeRequest->data
-            ),
-            // Add other model types as you implement them
-            default => throw new Exception("Unsupported model type: {$changeRequest->model_type}"),
-        };
-    }
-
-    /**
-     * @throws Exception
-     */
-    protected function executeDelete(ChangeRequest $changeRequest): bool
-    {
-        return match($changeRequest->model_type) {
-            'wrestler' => Wrestler::findOrFail($changeRequest->model_id)->delete(),
-            // Add other model types as you implement them
-            default => throw new Exception("Unsupported model type: {$changeRequest->model_type}"),
-        };
-    }
-
     private function updateUserReputation(User $user, string $outcome): void
     {
-        $points = match($outcome) {
+        $points = match ($outcome) {
             'approved' => 5,
             'rejected' => -2,
             default => 0
