@@ -92,7 +92,7 @@ class StoreWrestlerRequestTest extends TestCase
         $response->assertStatus(201);
 
         $wrestlerId = $response->json('data.id');
-        $wrestler   = Wrestler::with('names')->findOrFail($wrestlerId);
+        $wrestler = Wrestler::with('names')->findOrFail($wrestlerId);
 
         $this->assertEquals($user->id, $wrestler->created_by);
         $this->assertEquals($user->id, $wrestler->updated_by);
