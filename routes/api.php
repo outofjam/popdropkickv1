@@ -18,7 +18,7 @@ Route::get('/wrestlers/{wrestler}', [WrestlerController::class, 'show'])->name('
 Route::get('/promotions', [PromotionController::class, 'index']);
 Route::get('/promotions/{identifier}', [PromotionController::class, 'show'])->name('promotions.show');
 
-Route::get('/championships/{championship}', [ChampionshipController::class, 'show'])->name('championships.show');
+Route::get('/championships/{identifier}', [ChampionshipController::class, 'show'])->name('championships.show');
 
 // Protected routes requiring authentication
 Route::middleware('auth:sanctum')->group(function () {
