@@ -42,7 +42,10 @@ class StoreWrestlerRequestTest extends TestCase
 
     public function test_passes_if_primary_alias_exists(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'role' => 'admin',
+            'reputation_score' => 150, // above the 100 threshold
+        ]);
         $this->actingAs($user, 'sanctum'); // or just actingAs($user) if no guard
 
         // Arrange: create a promotion for valid promotion_ids
@@ -68,7 +71,10 @@ class StoreWrestlerRequestTest extends TestCase
 
     public function test_created_by_and_updated_by_are_set_when_authenticated(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'role' => 'admin',
+            'reputation_score' => 150, // above the 100 threshold
+        ]);
         $this->actingAs($user, 'sanctum'); // or just actingAs($user) if no guard
 
         $promotion = Promotion::factory()->create();
