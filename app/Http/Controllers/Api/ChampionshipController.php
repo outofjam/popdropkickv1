@@ -207,7 +207,7 @@ class ChampionshipController extends Controller
     /**
      * Toggle Championship  Active
      *
-     * Toggles a championship between active and active
+     * Toggles a championship between active and inactive
      *
      * @group Championships
      *
