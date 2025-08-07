@@ -137,14 +137,86 @@ class ChampionshipController extends Controller
         );
     }
 
-
-    public function update(UpdateChampionshipRequest $request, Championship $championship): JsonResponse
+    /**
+     * Update a championship by ID or slug.
+     *
+     * @group Championships
+     *
+     * @urlParam identifier string required The ID or slug of the championship. Example: intercontinental-championship
+     *
+     * @response 200 {
+     *   "success": true,
+     *   "message": null,
+     *   "data": {
+     *     "id": 1,
+     *     "name": "Intercontinental Championship",
+     *     "slug": "intercontinental-championship",
+     *     "introduced_on": "1990-07-01",
+     *     "retired_on": null,
+     *     "promotion": {
+     *       "id": 3,
+     *       "name": "WWE",
+     *       "slug": "wwe"
+     *     },
+     *     "title_reigns": [
+     *       {
+     *         "id": 1,
+     *         "wrestler": {
+     *           "id": 5,
+     *           "slug": "bret-hart"
+     *         },
+     *         "won_on": "1991-08-26",
+     *         "lost_on": "1992-04-05"
+     *       },
+     *       ...
+     *     ]
+     *   },
+     *   "meta": {
+     *     "counts": {
+     *       "title_reigns": 15
+     *     }
+     *   }
+     * }
+     * @response 404 {
+     *   "message": "Championship not found"
+     * }
+     */
+    public function update(UpdateChampionshipRequest $request, string $identifier): JsonResponse
     {
+        $championship = Championship::query()
+            ->where('id', $identifier)
+            ->orWhere('slug', $identifier)
+            ->with([
+                'promotion:id,name,slug',
+                'titleReigns.wrestler:id,slug',
+                'titleReigns' => static function ($query) {
+                    $query->orderBy('won_on');
+                },
+            ])
+            ->first();
+
+        if (!$championship) {
+            return $this->error('Championship not found', 404);
+        }
+
         $updatedChampionship = $this->service->updateChampionship($championship, $request->validated());
 
         return $this->success($updatedChampionship, 'Championship updated successfully');
     }
 
+    /**
+     * Toggle Championship  Active
+     *
+     * Toggles a championship between active and active
+     *
+     * @group Championships
+     *
+     * @urlParam identifier string required The ID or slug of the championship. Example: intercontinental-championship
+     *
+     * @response 404 {
+     *   "message": "Championship not found"
+     * }
+     */
     public function toggleActive(Championship $championship): JsonResponse
     {
         $updatedChampionship = $this->service->toggleActiveStatus($championship);

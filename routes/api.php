@@ -37,7 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     );
 
     // Update full championship details (PUT or PATCH both acceptable)
-    Route::match(['put', 'patch'], '/championships/{championship}', [ChampionshipController::class, 'update'])->name('championships.update');
+    Route::match(['put', 'patch'], '/championships/{identifier}', [ChampionshipController::class, 'update'])->name('championships.update');
 
     // Toggle championship active/inactive (simplified PATCH if needed)
     Route::patch('/championships/{championship}/toggle-active', [ChampionshipController::class, 'toggleActive'])->name('championships.toggleActive');
