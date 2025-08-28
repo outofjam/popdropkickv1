@@ -24,3 +24,15 @@ Route::get('/get-session', function() {
         'all_session' => session()->all()
     ];
 });
+
+Route::get('/url-debug', function() {
+    return [
+        'config_app_url' => config('app.url'),
+        'config_app_env' => config('app.env'),
+        'url_current' => url()->current(),
+        'url_previous' => url()->previous(),
+        'request_scheme' => request()->getScheme(),
+        'request_is_secure' => request()->isSecure(),
+        'app_debug' => config('app.debug'),
+    ];
+});
