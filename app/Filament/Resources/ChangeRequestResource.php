@@ -3,6 +3,9 @@
 namespace App\Filament\Resources;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
@@ -17,8 +20,11 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use App\Filament\Resources\ChangeRequestResource\Pages\ListChangeRequests;
 use App\Filament\Resources\ChangeRequestResource\Pages\ViewChangeRequest;
+<<<<<<< HEAD
 =======
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
 use App\Filament\Resources\ChangeRequestResource\Pages;
 use App\Models\ChangeRequest;
 use App\Services\ChangeRequestService;
@@ -27,9 +33,13 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 <<<<<<< HEAD
+<<<<<<< HEAD
 use Filament\Schemas\Schema;
 =======
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+use Filament\Schemas\Schema;
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
@@ -38,6 +48,7 @@ use Illuminate\Support\HtmlString;
 class ChangeRequestResource extends Resource
 {
     protected static ?string $model = ChangeRequest::class;
+<<<<<<< HEAD
 <<<<<<< HEAD
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Change Requests';
@@ -55,20 +66,27 @@ class ChangeRequestResource extends Resource
                         Select::make('model_type')
 =======
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
+=======
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
     protected static ?string $navigationLabel = 'Change Requests';
     protected static ?int $navigationSort = 1;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Request Details')
+        return $schema
+            ->components([
+                Section::make('Request Details')
                     ->schema([
-                        Forms\Components\TextInput::make('user.name')
+                        TextInput::make('user.name')
                             ->label('Submitted By')
                             ->disabled(),
+<<<<<<< HEAD
                         Forms\Components\Select::make('model_type')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                        Select::make('model_type')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                             ->label('Content Type')
                             ->options([
                                 'wrestler' => 'Wrestler',
@@ -78,10 +96,14 @@ class ChangeRequestResource extends Resource
                             ])
                             ->disabled(),
 <<<<<<< HEAD
+<<<<<<< HEAD
                         Select::make('action')
 =======
                         Forms\Components\Select::make('action')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                        Select::make('action')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                             ->options([
                                 'create' => 'Create',
                                 'update' => 'Update',
@@ -89,10 +111,14 @@ class ChangeRequestResource extends Resource
                             ])
                             ->disabled(),
 <<<<<<< HEAD
+<<<<<<< HEAD
                         Select::make('status')
 =======
                         Forms\Components\Select::make('status')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                        Select::make('status')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                             ->options([
                                 'pending' => 'Pending',
                                 'approved' => 'Approved',
@@ -100,14 +126,19 @@ class ChangeRequestResource extends Resource
                             ])
                             ->disabled(),
 <<<<<<< HEAD
+<<<<<<< HEAD
                         DateTimePicker::make('created_at')
 =======
                         Forms\Components\DateTimePicker::make('created_at')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                        DateTimePicker::make('created_at')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                             ->label('Submitted At')
                             ->disabled(),
                     ])->columns(),
 
+<<<<<<< HEAD
 <<<<<<< HEAD
                 Section::make('Proposed Changes')
                     ->schema([
@@ -117,12 +148,18 @@ class ChangeRequestResource extends Resource
                     ->schema([
                         Forms\Components\Placeholder::make('changes')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                Section::make('Proposed Changes')
+                    ->schema([
+                        Placeholder::make('changes')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                             ->label('')
                             ->content(static function (ChangeRequest $record): HtmlString {
                                 return new HtmlString(self::formatChanges($record));
                             }),
                     ]),
 
+<<<<<<< HEAD
 <<<<<<< HEAD
                 Section::make('Review')
                     ->schema([
@@ -136,16 +173,23 @@ class ChangeRequestResource extends Resource
                         DateTimePicker::make('reviewed_at')
 =======
                 Forms\Components\Section::make('Review')
+=======
+                Section::make('Review')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                     ->schema([
-                        Forms\Components\Textarea::make('reviewer_comments')
+                        Textarea::make('reviewer_comments')
                             ->label('Review Comments')
                             ->rows(3),
-                        Forms\Components\TextInput::make('reviewer.name')
+                        TextInput::make('reviewer.name')
                             ->label('Reviewed By')
                             ->disabled()
                             ->visible(static fn (ChangeRequest $record) => $record->reviewer_id !== null),
+<<<<<<< HEAD
                         Forms\Components\DateTimePicker::make('reviewed_at')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                        DateTimePicker::make('reviewed_at')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                             ->label('Reviewed At')
                             ->disabled()
                             ->visible(static fn (ChangeRequest $record) => $record->reviewed_at !== null),
@@ -159,19 +203,27 @@ class ChangeRequestResource extends Resource
         return $table
             ->columns([
 <<<<<<< HEAD
+<<<<<<< HEAD
                 TextColumn::make('user.name')
 =======
                 Tables\Columns\TextColumn::make('user.name')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                TextColumn::make('user.name')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                     ->label('Submitted By')
                     ->searchable()
                     ->sortable(),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 BadgeColumn::make('model_type')
 =======
                 Tables\Columns\BadgeColumn::make('model_type')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                BadgeColumn::make('model_type')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                     ->label('Type')
                     ->colors([
                         'primary' => 'wrestler',
@@ -181,10 +233,14 @@ class ChangeRequestResource extends Resource
                     ]),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 BadgeColumn::make('action')
 =======
                 Tables\Columns\BadgeColumn::make('action')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                BadgeColumn::make('action')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                     ->colors([
                         'success' => 'create',
                         'warning' => 'update',
@@ -192,10 +248,14 @@ class ChangeRequestResource extends Resource
                     ]),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 BadgeColumn::make('status')
 =======
                 Tables\Columns\BadgeColumn::make('status')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                BadgeColumn::make('status')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                     ->colors([
                         'warning' => 'pending',
                         'success' => 'approved',
@@ -203,28 +263,40 @@ class ChangeRequestResource extends Resource
                     ]),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 TextColumn::make('created_at')
 =======
                 Tables\Columns\TextColumn::make('created_at')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                TextColumn::make('created_at')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                     ->label('Submitted')
                     ->dateTime()
                     ->sortable(),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 TextColumn::make('reviewer.name')
 =======
                 Tables\Columns\TextColumn::make('reviewer.name')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                TextColumn::make('reviewer.name')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                     ->label('Reviewed By')
                     ->placeholder('—'),
             ])
             ->filters([
 <<<<<<< HEAD
+<<<<<<< HEAD
                 SelectFilter::make('status')
 =======
                 Tables\Filters\SelectFilter::make('status')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                SelectFilter::make('status')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                     ->options([
                         'pending' => 'Pending',
                         'approved' => 'Approved',
@@ -233,10 +305,14 @@ class ChangeRequestResource extends Resource
                     ->default('pending'),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 SelectFilter::make('model_type')
 =======
                 Tables\Filters\SelectFilter::make('model_type')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                SelectFilter::make('model_type')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                     ->label('Content Type')
                     ->options([
                         'wrestler' => 'Wrestler',
@@ -246,16 +322,21 @@ class ChangeRequestResource extends Resource
                     ]),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 SelectFilter::make('action')
 =======
                 Tables\Filters\SelectFilter::make('action')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                SelectFilter::make('action')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                     ->options([
                         'create' => 'Create',
                         'update' => 'Update',
                         'delete' => 'Delete',
                     ]),
             ])
+<<<<<<< HEAD
 <<<<<<< HEAD
             ->recordActions([
                 ViewAction::make(),
@@ -269,14 +350,23 @@ class ChangeRequestResource extends Resource
 =======
             ->actions([
                 Tables\Actions\ViewAction::make(),
+=======
+            ->recordActions([
+                ViewAction::make(),
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
 
-                Tables\Actions\Action::make('approve')
+                Action::make('approve')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->visible(static fn (ChangeRequest $record) => $record->status === 'pending')
+<<<<<<< HEAD
                     ->form([
                         Forms\Components\Textarea::make('comments')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                    ->schema([
+                        Textarea::make('comments')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                             ->label('Approval Comments (Optional)')
                             ->rows(2),
                     ])
@@ -298,6 +388,7 @@ class ChangeRequestResource extends Resource
                     }),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 Action::make('reject')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
@@ -312,6 +403,14 @@ class ChangeRequestResource extends Resource
                     ->form([
                         Forms\Components\Textarea::make('comments')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+                Action::make('reject')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(static fn (ChangeRequest $record) => $record->status === 'pending')
+                    ->schema([
+                        Textarea::make('comments')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                             ->label('Rejection Reason')
                             ->required()
                             ->rows(2),
@@ -325,6 +424,7 @@ class ChangeRequestResource extends Resource
                             ->send();
                     }),
             ])
+<<<<<<< HEAD
 <<<<<<< HEAD
             ->toolbarActions([
                 BulkAction::make('bulk_approve')
@@ -342,6 +442,15 @@ class ChangeRequestResource extends Resource
                     ->form([
                         Forms\Components\Textarea::make('comments')
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+            ->toolbarActions([
+                BulkAction::make('bulk_approve')
+                    ->label('Bulk Approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->schema([
+                        Textarea::make('comments')
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                             ->label('Bulk Approval Comments')
                             ->rows(2),
                     ])
@@ -414,12 +523,17 @@ class ChangeRequestResource extends Resource
     {
         return [
 <<<<<<< HEAD
+<<<<<<< HEAD
             'index' => ListChangeRequests::route('/'),
             'view' => ViewChangeRequest::route('/{record}'),
 =======
             'index' => Pages\ListChangeRequests::route('/'),
             'view' => Pages\ViewChangeRequest::route('/{record}'),
 >>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
+=======
+            'index' => ListChangeRequests::route('/'),
+            'view' => ViewChangeRequest::route('/{record}'),
+>>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
         ];
     }
 
