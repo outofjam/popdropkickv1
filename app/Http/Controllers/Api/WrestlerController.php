@@ -73,6 +73,7 @@ class WrestlerController extends Controller
      *
      * @responseType \Illuminate\Http\Resources\Json\AnonymousResourceCollection<WrestlerListResource>
      */
+    // removed from endpoints. this one doesn't make sense
     public function index(): JsonResponse
     {
         $wrestlers = $this->service->getPaginated();

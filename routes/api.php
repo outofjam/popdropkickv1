@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::get('/user', static fn (Request $request) => $request->user())->middleware('auth:sanctum');
 
-Route::get('/wrestlers', [WrestlerController::class, 'index']);
+//Route::get('/wrestlers', [WrestlerController::class, 'index']);
 Route::get('/wrestlers/{wrestler}', [WrestlerController::class, 'show'])->name('wrestlers.show');
 
 Route::get('/promotions', [PromotionController::class, 'index']);
