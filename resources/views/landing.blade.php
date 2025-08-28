@@ -44,7 +44,7 @@
 <!-- Contact Info -->
 <div class="bg-white shadow-xl p-6 rounded-3xl max-w-md w-full mb-12 hover:shadow-2xl transition-shadow duration-300">
     <h2 class="text-2xl font-semibold mb-4 flex items-center"><i class="fas fa-envelope mr-2 text-blue-500"></i>Contact</h2>
-    <form action="https://formsubmit.co/ish@popdropkick.dev" method="POST" class="space-y-4">
+    <form action="https://formsubmit.co/b65c504ec54c30d40486bf377a6e5d1b" method="POST" class="space-y-4">
         <input type="text" name="name" placeholder="Name" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
         <input type="email" name="email" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
         <textarea name="message" placeholder="Message" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" rows="4" required></textarea>
