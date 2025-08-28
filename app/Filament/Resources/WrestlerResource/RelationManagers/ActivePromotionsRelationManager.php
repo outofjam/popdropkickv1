@@ -2,8 +2,12 @@
 
 namespace App\Filament\Resources\WrestlerResource\RelationManagers;
 
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use App\Filament\Actions\AttachPromotionAction;
-use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -12,10 +16,10 @@ class ActivePromotionsRelationManager extends RelationManager
 {
     protected static string $relationship = 'activePromotions';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 // Remove this - AttachAction doesn't need a custom form
             ]);
     }
@@ -25,7 +29,7 @@ class ActivePromotionsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
+                TextColumn::make('name'),
             ])
             ->filters([
                 //
@@ -38,16 +42,16 @@ class ActivePromotionsRelationManager extends RelationManager
                         $this->ownerRecord->promotions()->syncWithoutDetaching([$record->id]);
                     }),
             ])
-            ->actions([
-                Tables\Actions\DeleteAction::make()
+            ->recordActions([
+                DeleteAction::make()
                     ->action(function ($record) {
                         // Only remove from active promotions, keep in general promotions
                         $this->ownerRecord->activePromotions()->detach($record->id);
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
                         ->action(function ($records) {
                             // Only remove from active promotions, keep in general promotions
                             $recordIds = $records->pluck('id')->toArray();

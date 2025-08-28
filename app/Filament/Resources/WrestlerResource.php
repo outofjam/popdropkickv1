@@ -2,6 +2,15 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Actions\EditAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\WrestlerResource\Pages\ListWrestlers;
+use App\Filament\Resources\WrestlerResource\Pages\CreateWrestler;
+use App\Filament\Resources\WrestlerResource\Pages\EditWrestler;
 use App\Filament\Resources\WrestlerResource\Pages;
 use App\Filament\Resources\WrestlerResource\RelationManagers\ActivePromotionsRelationManager;
 use App\Filament\Resources\WrestlerResource\RelationManagers\NamesRelationManager;
@@ -10,7 +19,6 @@ use App\Filament\Resources\WrestlerResource\RelationManagers\TitleReignsRelation
 use App\Helpers\FilamentHelpers;
 use App\Models\Wrestler;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -22,17 +30,17 @@ class WrestlerResource extends Resource
 {
     protected static ?string $model = Wrestler::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('slug')
+        return $schema
+            ->components([
+                TextInput::make('slug')
                     ->disabled(),
-                Forms\Components\TextInput::make('real_name'),
-                Forms\Components\DatePicker::make('debut_date'),
-                Forms\Components\TextInput::make('country'),
+                TextInput::make('real_name'),
+                DatePicker::make('debut_date'),
+                TextInput::make('country'),
                 FilamentHelpers::userDisplayField('created_by', 'Created By'),
                 FilamentHelpers::userDisplayField('updated_by', 'Updated By'),
             ]);
@@ -42,20 +50,20 @@ class WrestlerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->label('ID')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                Tables\Columns\TextColumn::make('primaryName.name')
+                TextColumn::make('primaryName.name')
                     ->label('Name')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('slug')
+                TextColumn::make('slug')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                Tables\Columns\TextColumn::make('real_name')
+                TextColumn::make('real_name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('debut_date')
+                TextColumn::make('debut_date')
                     ->date()
                     ->sortable(),
                 TextColumn::make('country')
@@ -82,12 +90,12 @@ class WrestlerResource extends Resource
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])->modifyQueryUsing(function (Builder $query) {
                 return $query->select(['id', 'slug', 'real_name', 'debut_date', 'country', 'created_at', 'updated_at'])
@@ -111,9 +119,9 @@ class WrestlerResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListWrestlers::route('/'),
-            'create' => Pages\CreateWrestler::route('/create'),
-            'edit' => Pages\EditWrestler::route('/{record}/edit'),
+            'index' => ListWrestlers::route('/'),
+            'create' => CreateWrestler::route('/create'),
+            'edit' => EditWrestler::route('/{record}/edit'),
         ];
     }
 

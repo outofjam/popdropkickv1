@@ -2,9 +2,10 @@
 
 namespace App\Filament\Actions;
 
+use Filament\Actions\AttachAction;
+use Filament\Forms\Components\Select;
 use App\Models\Promotion;
 use Filament\Forms;
-use Filament\Tables\Actions\AttachAction;
 use Illuminate\Database\Eloquent\Builder;
 
 class AttachPromotionAction extends AttachAction
@@ -44,7 +45,7 @@ class AttachPromotionAction extends AttachAction
             })->orderBy('name');
         })
             ->form([
-                Forms\Components\Select::make('recordId')
+                Select::make('recordId')
                     ->label('Promotion')
                     ->searchable()
                     ->options(function () {

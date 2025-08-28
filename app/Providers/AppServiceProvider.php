@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use Filament\Tables\Actions\EditAction;
+use Filament\Actions\EditAction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;

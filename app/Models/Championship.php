@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Toggle;
 use App\Helpers\FilamentHelpers;
 use App\Traits\TracksCreatedAndUpdated;
 use Cviebrock\EloquentSluggable\Sluggable;
@@ -40,16 +43,16 @@ class Championship extends Model
     {
         return [
 
-            Forms\Components\TextInput::make('slug')
+            TextInput::make('slug')
                 ->disabled(),
 
-            Forms\Components\TextInput::make('name')
+            TextInput::make('name')
                 ->required(),
-            Forms\Components\TextInput::make('abbreviation'),
-            Forms\Components\TextInput::make('division'),
-            Forms\Components\DatePicker::make('introduced_at'),
-            Forms\Components\TextInput::make('weight_class'),
-            Forms\Components\Toggle::make('active')
+            TextInput::make('abbreviation'),
+            TextInput::make('division'),
+            DatePicker::make('introduced_at'),
+            TextInput::make('weight_class'),
+            Toggle::make('active')
                 ->required(),
             FilamentHelpers::userDisplayField('created_by', 'Created By'),
             FilamentHelpers::userDisplayField('updated_by', 'Updated By')

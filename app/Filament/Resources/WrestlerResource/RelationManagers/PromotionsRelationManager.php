@@ -2,8 +2,13 @@
 
 namespace App\Filament\Resources\WrestlerResource\RelationManagers;
 
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Actions\DetachAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DetachBulkAction;
 use App\Filament\Actions\AttachPromotionAction;
-use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -12,10 +17,10 @@ class PromotionsRelationManager extends RelationManager
 {
     protected static string $relationship = 'promotions';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 // Remove this - AttachAction handles it
             ]);
     }
@@ -25,8 +30,8 @@ class PromotionsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                Tables\Columns\TextColumn::make('name'),
-                Tables\Columns\ToggleColumn::make('is_active')
+                TextColumn::make('name'),
+                ToggleColumn::make('is_active')
                     ->label('Active')
                     ->getStateUsing(function ($record) {
                         return $this->ownerRecord->activePromotions()->where('promotion_id', $record->id)->exists();
@@ -47,13 +52,13 @@ class PromotionsRelationManager extends RelationManager
             ->headerActions([
                 AttachPromotionAction::make()->forPromotions(),
             ])
-            ->actions([
+            ->recordActions([
 //                Tables\Actions\EditAction::make(),
-                Tables\Actions\DetachAction::make(),
+                DetachAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DetachBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DetachBulkAction::make(),
                 ]),
             ]);
     }
