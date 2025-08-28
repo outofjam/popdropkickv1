@@ -36,3 +36,12 @@ Route::get('/url-debug', function() {
         'app_debug' => config('app.debug'),
     ];
 });
+
+Route::get('/force-login', function() {
+    $user = \App\Models\User::where('email', 'test@example.com')->first();
+    if ($user) {
+        Auth::login($user);
+        return redirect('/admin');
+    }
+    return 'User not found';
+});
