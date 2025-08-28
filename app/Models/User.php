@@ -62,6 +62,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
+        return true;
         $emailCheck = str_ends_with($this->email, '@mac.com');
         Log::info('Filament login check', [
             'email' => $this->email,
