@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use Filament\Tables\Actions\EditAction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
             $this->app['request']->server->set('SERVER_PORT', 443);
 
             URL::forceScheme('https');
-            URL::forceRootUrl(config('app.url'));
+            
         }
         Gate::define('viewApiDocs', static function ($user = null) {
             return true;
@@ -33,6 +35,15 @@ class AppServiceProvider extends ServiceProvider
 
         EditAction::configureUsing(function (EditAction $action): void {
             $action->slideOver();
+        });
+
+
+        // 👇 log every attempt
+        Auth::attempting(function ($event) {
+            Log::info('Auth attempting', [
+                'credentials' => $event->credentials,
+                'remember' => $event->remember,
+            ]);
         });
     }
 }
