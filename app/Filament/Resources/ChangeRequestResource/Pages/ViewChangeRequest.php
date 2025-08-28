@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\ChangeRequestResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use Filament\Actions\EditAction;
 use App\Filament\Resources\ChangeRequestResource;
 use App\Models\ChangeRequest;
 use App\Services\ChangeRequestService;
@@ -18,12 +21,12 @@ class ViewChangeRequest extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('approve')
+            Action::make('approve')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->visible(fn () => $this->record->status === 'pending')
-                ->form([
-                    Forms\Components\Textarea::make('comments')
+                ->schema([
+                    Textarea::make('comments')
                         ->label('Approval Comments (Optional)')
                         ->rows(3),
                 ])
@@ -48,12 +51,12 @@ class ViewChangeRequest extends ViewRecord
                     }
                 }),
 
-            Actions\Action::make('reject')
+            Action::make('reject')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
                 ->visible(fn () => $this->record->status === 'pending')
-                ->form([
-                    Forms\Components\Textarea::make('comments')
+                ->schema([
+                    Textarea::make('comments')
                         ->label('Rejection Reason')
                         ->required()
                         ->rows(3),
@@ -71,7 +74,7 @@ class ViewChangeRequest extends ViewRecord
                     return redirect()->to(ChangeRequestResource::getUrl('index'));
                 }),
 
-            Actions\EditAction::make()
+            EditAction::make()
                 ->visible(false), // Hide edit action since we handle approve/reject differently
         ];
     }
