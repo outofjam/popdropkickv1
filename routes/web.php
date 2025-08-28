@@ -7,15 +7,20 @@ Route::get('/', function () {
 });
 
 // In routes/web.php
-Route::get('/debug-session', function() {
-    session()->put('test_key', 'test_value');
+Route::get('/set-session', function() {
+    session()->put('persistent_test', 'hello_world');
     session()->save();
+    return [
+        'message' => 'Session set',
+        'session_id' => session()->getId(),
+        'immediate_read' => session()->get('persistent_test')
+    ];
+});
 
+Route::get('/get-session', function() {
     return [
         'session_id' => session()->getId(),
-        'session_driver' => config('session.driver'),
-        'test_value' => session()->get('test_value'),
-        'session_working' => session()->get('test_key') === 'test_value',
-        'database_sessions_table_exists' => \Schema::hasTable('sessions'),
+        'persistent_test' => session()->get('persistent_test'),
+        'all_session' => session()->all()
     ];
 });
