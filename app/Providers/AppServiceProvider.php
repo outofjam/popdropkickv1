@@ -20,8 +20,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if (config('app.env') === 'production') {
+            // Trust DigitalOcean App Platform proxies
+            $this->app['request']->server->set('HTTPS', 'on');
+            $this->app['request']->server->set('SERVER_PORT', 443);
+
             URL::forceScheme('https');
-            URL::forceRootUrl(config('app.url')); 
+            URL::forceRootUrl(config('app.url'));
         }
         Gate::define('viewApiDocs', static function ($user = null) {
             return true;
