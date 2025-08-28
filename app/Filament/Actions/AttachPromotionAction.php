@@ -44,7 +44,7 @@ class AttachPromotionAction extends AttachAction
                     ->where('wrestler_id', $this->getLivewire()->getOwnerRecord()->id);
             })->orderBy('name');
         })
-            ->form([
+            ->schema([
                 Select::make('recordId')
                     ->label('Promotion')
                     ->searchable()

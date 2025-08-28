@@ -2,6 +2,20 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Textarea;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Actions\ViewAction;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use App\Filament\Resources\ChangeRequestResource\Pages\ListChangeRequests;
+use App\Filament\Resources\ChangeRequestResource\Pages\ViewChangeRequest;
 use App\Filament\Resources\ChangeRequestResource\Pages;
 use App\Models\ChangeRequest;
 use App\Services\ChangeRequestService;
@@ -9,6 +23,7 @@ use Exception;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
@@ -17,20 +32,20 @@ use Illuminate\Support\HtmlString;
 class ChangeRequestResource extends Resource
 {
     protected static ?string $model = ChangeRequest::class;
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Change Requests';
     protected static ?int $navigationSort = 1;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Request Details')
+        return $schema
+            ->components([
+                Section::make('Request Details')
                     ->schema([
-                        Forms\Components\TextInput::make('user.name')
+                        TextInput::make('user.name')
                             ->label('Submitted By')
                             ->disabled(),
-                        Forms\Components\Select::make('model_type')
+                        Select::make('model_type')
                             ->label('Content Type')
                             ->options([
                                 'wrestler' => 'Wrestler',
@@ -39,44 +54,44 @@ class ChangeRequestResource extends Resource
                                 'promotion' => 'Promotion',
                             ])
                             ->disabled(),
-                        Forms\Components\Select::make('action')
+                        Select::make('action')
                             ->options([
                                 'create' => 'Create',
                                 'update' => 'Update',
                                 'delete' => 'Delete',
                             ])
                             ->disabled(),
-                        Forms\Components\Select::make('status')
+                        Select::make('status')
                             ->options([
                                 'pending' => 'Pending',
                                 'approved' => 'Approved',
                                 'rejected' => 'Rejected',
                             ])
                             ->disabled(),
-                        Forms\Components\DateTimePicker::make('created_at')
+                        DateTimePicker::make('created_at')
                             ->label('Submitted At')
                             ->disabled(),
                     ])->columns(),
 
-                Forms\Components\Section::make('Proposed Changes')
+                Section::make('Proposed Changes')
                     ->schema([
-                        Forms\Components\Placeholder::make('changes')
+                        Placeholder::make('changes')
                             ->label('')
                             ->content(static function (ChangeRequest $record): HtmlString {
                                 return new HtmlString(self::formatChanges($record));
                             }),
                     ]),
 
-                Forms\Components\Section::make('Review')
+                Section::make('Review')
                     ->schema([
-                        Forms\Components\Textarea::make('reviewer_comments')
+                        Textarea::make('reviewer_comments')
                             ->label('Review Comments')
                             ->rows(3),
-                        Forms\Components\TextInput::make('reviewer.name')
+                        TextInput::make('reviewer.name')
                             ->label('Reviewed By')
                             ->disabled()
                             ->visible(static fn (ChangeRequest $record) => $record->reviewer_id !== null),
-                        Forms\Components\DateTimePicker::make('reviewed_at')
+                        DateTimePicker::make('reviewed_at')
                             ->label('Reviewed At')
                             ->disabled()
                             ->visible(static fn (ChangeRequest $record) => $record->reviewed_at !== null),
@@ -89,12 +104,12 @@ class ChangeRequestResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
+                TextColumn::make('user.name')
                     ->label('Submitted By')
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('model_type')
+                BadgeColumn::make('model_type')
                     ->label('Type')
                     ->colors([
                         'primary' => 'wrestler',
@@ -103,31 +118,31 @@ class ChangeRequestResource extends Resource
                         'info' => 'promotion',
                     ]),
 
-                Tables\Columns\BadgeColumn::make('action')
+                BadgeColumn::make('action')
                     ->colors([
                         'success' => 'create',
                         'warning' => 'update',
                         'danger' => 'delete',
                     ]),
 
-                Tables\Columns\BadgeColumn::make('status')
+                BadgeColumn::make('status')
                     ->colors([
                         'warning' => 'pending',
                         'success' => 'approved',
                         'danger' => 'rejected',
                     ]),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Submitted')
                     ->dateTime()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('reviewer.name')
+                TextColumn::make('reviewer.name')
                     ->label('Reviewed By')
                     ->placeholder('—'),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->options([
                         'pending' => 'Pending',
                         'approved' => 'Approved',
@@ -135,7 +150,7 @@ class ChangeRequestResource extends Resource
                     ])
                     ->default('pending'),
 
-                Tables\Filters\SelectFilter::make('model_type')
+                SelectFilter::make('model_type')
                     ->label('Content Type')
                     ->options([
                         'wrestler' => 'Wrestler',
@@ -144,22 +159,22 @@ class ChangeRequestResource extends Resource
                         'promotion' => 'Promotion',
                     ]),
 
-                Tables\Filters\SelectFilter::make('action')
+                SelectFilter::make('action')
                     ->options([
                         'create' => 'Create',
                         'update' => 'Update',
                         'delete' => 'Delete',
                     ]),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
 
-                Tables\Actions\Action::make('approve')
+                Action::make('approve')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->visible(static fn (ChangeRequest $record) => $record->status === 'pending')
-                    ->form([
-                        Forms\Components\Textarea::make('comments')
+                    ->schema([
+                        Textarea::make('comments')
                             ->label('Approval Comments (Optional)')
                             ->rows(2),
                     ])
@@ -180,12 +195,12 @@ class ChangeRequestResource extends Resource
                         }
                     }),
 
-                Tables\Actions\Action::make('reject')
+                Action::make('reject')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->visible(static fn (ChangeRequest $record) => $record->status === 'pending')
-                    ->form([
-                        Forms\Components\Textarea::make('comments')
+                    ->schema([
+                        Textarea::make('comments')
                             ->label('Rejection Reason')
                             ->required()
                             ->rows(2),
@@ -199,13 +214,13 @@ class ChangeRequestResource extends Resource
                             ->send();
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkAction::make('bulk_approve')
+            ->toolbarActions([
+                BulkAction::make('bulk_approve')
                     ->label('Bulk Approve')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->form([
-                        Forms\Components\Textarea::make('comments')
+                    ->schema([
+                        Textarea::make('comments')
                             ->label('Bulk Approval Comments')
                             ->rows(2),
                     ])
@@ -277,8 +292,8 @@ class ChangeRequestResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListChangeRequests::route('/'),
-            'view' => Pages\ViewChangeRequest::route('/{record}'),
+            'index' => ListChangeRequests::route('/'),
+            'view' => ViewChangeRequest::route('/{record}'),
         ];
     }
 
