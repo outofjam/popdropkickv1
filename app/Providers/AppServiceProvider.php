@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
             $this->app['request']->server->set('SERVER_PORT', 443);
 
             URL::forceScheme('https');
-            
+
         }
         Gate::define('viewApiDocs', static function ($user = null) {
             return true;
