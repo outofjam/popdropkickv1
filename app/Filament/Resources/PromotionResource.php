@@ -11,16 +11,13 @@ use Filament\Actions\DeleteBulkAction;
 use App\Filament\Resources\PromotionResource\Pages\ListPromotions;
 use App\Filament\Resources\PromotionResource\Pages\CreatePromotion;
 use App\Filament\Resources\PromotionResource\Pages\EditPromotion;
-use App\Filament\Resources\PromotionResource\Pages;
 use App\Filament\Resources\PromotionResource\RelationManagers\ActiveChampionshipsRelationManager;
 use App\Filament\Resources\PromotionResource\RelationManagers\ActiveWrestlersRelationManager;
 use App\Filament\Resources\PromotionResource\RelationManagers\ChampionshipsRelationManager;
 use App\Filament\Resources\PromotionResource\RelationManagers\WrestlersRelationManager;
 use App\Helpers\FilamentHelpers;
 use App\Models\Promotion;
-use Filament\Forms;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
 
 class PromotionResource extends Resource

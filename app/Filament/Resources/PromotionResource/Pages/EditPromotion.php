@@ -4,7 +4,6 @@ namespace App\Filament\Resources\PromotionResource\Pages;
 
 use Filament\Actions\DeleteAction;
 use App\Filament\Resources\PromotionResource;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditPromotion extends EditRecord

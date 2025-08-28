@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use BackedEnum;
 use Filament\Schemas\Schema;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
@@ -11,16 +12,13 @@ use Filament\Actions\DeleteBulkAction;
 use App\Filament\Resources\WrestlerResource\Pages\ListWrestlers;
 use App\Filament\Resources\WrestlerResource\Pages\CreateWrestler;
 use App\Filament\Resources\WrestlerResource\Pages\EditWrestler;
-use App\Filament\Resources\WrestlerResource\Pages;
 use App\Filament\Resources\WrestlerResource\RelationManagers\ActivePromotionsRelationManager;
 use App\Filament\Resources\WrestlerResource\RelationManagers\NamesRelationManager;
 use App\Filament\Resources\WrestlerResource\RelationManagers\PromotionsRelationManager;
 use App\Filament\Resources\WrestlerResource\RelationManagers\TitleReignsRelationManager;
 use App\Helpers\FilamentHelpers;
 use App\Models\Wrestler;
-use Filament\Forms;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,7 +28,7 @@ class WrestlerResource extends Resource
 {
     protected static ?string $model = Wrestler::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Schema $schema): Schema
     {
