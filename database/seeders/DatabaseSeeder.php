@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             //            WrestlerNameSeeder::class,
             ChampionshipSeeder::class,
             TitleReignSeeder::class,
+            TestUserSeeder::class,
         ]);
     }
 }
