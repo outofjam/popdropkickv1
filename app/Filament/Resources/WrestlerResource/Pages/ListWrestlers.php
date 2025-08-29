@@ -4,7 +4,6 @@ namespace App\Filament\Resources\WrestlerResource\Pages;
 
 use Filament\Actions\CreateAction;
 use App\Filament\Resources\WrestlerResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
 class ListWrestlers extends ListRecords

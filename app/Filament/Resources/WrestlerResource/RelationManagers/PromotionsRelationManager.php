@@ -10,7 +10,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DetachBulkAction;
 use App\Filament\Actions\AttachPromotionAction;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
 use Filament\Tables\Table;
 
 class PromotionsRelationManager extends RelationManager
