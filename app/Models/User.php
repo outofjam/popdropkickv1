@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -62,6 +63,14 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
+
+        Log::info('Filament login check', [
+            'email' => $this->email,
+            'guard' => Auth::getDefaultDriver(),
+            'guard_via_config' => config('filament.auth.guard'),
+            'auth_check' => Auth::check(),
+        ]);
+
         return true;
         $emailCheck = str_ends_with($this->email, '@mac.com');
         Log::info('Filament login check', [
