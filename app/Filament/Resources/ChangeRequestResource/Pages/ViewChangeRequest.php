@@ -2,24 +2,13 @@
 
 namespace App\Filament\Resources\ChangeRequestResource\Pages;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Actions\EditAction;
-=======
->>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
-=======
-use Filament\Actions\Action;
-use Filament\Forms\Components\Textarea;
-use Filament\Actions\EditAction;
->>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
 use App\Filament\Resources\ChangeRequestResource;
 use App\Models\ChangeRequest;
 use App\Services\ChangeRequestService;
 use Exception;
-use Filament\Actions;
-use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -30,30 +19,12 @@ class ViewChangeRequest extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-<<<<<<< HEAD
-<<<<<<< HEAD
             Action::make('approve')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->visible(fn () => $this->record->status === 'pending')
                 ->schema([
                     Textarea::make('comments')
-=======
-            Actions\Action::make('approve')
-                ->icon('heroicon-o-check-circle')
-                ->color('success')
-                ->visible(fn () => $this->record->status === 'pending')
-                ->form([
-                    Forms\Components\Textarea::make('comments')
->>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
-=======
-            Action::make('approve')
-                ->icon('heroicon-o-check-circle')
-                ->color('success')
-                ->visible(fn () => $this->record->status === 'pending')
-                ->schema([
-                    Textarea::make('comments')
->>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                         ->label('Approval Comments (Optional)')
                         ->rows(3),
                 ])
@@ -78,30 +49,12 @@ class ViewChangeRequest extends ViewRecord
                     }
                 }),
 
-<<<<<<< HEAD
-<<<<<<< HEAD
             Action::make('reject')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
                 ->visible(fn () => $this->record->status === 'pending')
                 ->schema([
                     Textarea::make('comments')
-=======
-            Actions\Action::make('reject')
-                ->icon('heroicon-o-x-circle')
-                ->color('danger')
-                ->visible(fn () => $this->record->status === 'pending')
-                ->form([
-                    Forms\Components\Textarea::make('comments')
->>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
-=======
-            Action::make('reject')
-                ->icon('heroicon-o-x-circle')
-                ->color('danger')
-                ->visible(fn () => $this->record->status === 'pending')
-                ->schema([
-                    Textarea::make('comments')
->>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                         ->label('Rejection Reason')
                         ->required()
                         ->rows(3),
@@ -119,15 +72,7 @@ class ViewChangeRequest extends ViewRecord
                     return redirect()->to(ChangeRequestResource::getUrl('index'));
                 }),
 
-<<<<<<< HEAD
-<<<<<<< HEAD
             EditAction::make()
-=======
-            Actions\EditAction::make()
->>>>>>> 1a81b22 (🎉 Add complete approval system with Filament admin dashboard)
-=======
-            EditAction::make()
->>>>>>> e98d400 (upgrade this branch to v4 because it has changerequest related filament components)
                 ->visible(false), // Hide edit action since we handle approve/reject differently
         ];
     }
