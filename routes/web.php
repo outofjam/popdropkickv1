@@ -14,3 +14,14 @@ Route::get('/session-test', function () {
     ];
 });
 
+Route::get('/session-debug', function () {
+    return [
+        'cookie_name_expected' => config('session.cookie'),
+        'cookies_received'     => request()->cookies->all(),
+        'session_id'           => session()->getId(),
+        'is_secure_request'    => request()->isSecure(),
+        'scheme'               => request()->getScheme(),
+    ];
+});
+
+
