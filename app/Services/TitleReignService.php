@@ -46,4 +46,14 @@ class TitleReignService
             $reign->updateQuietly(['reign_number' => $index + 1]);
         }
     }
+
+    public function deleteReign(TitleReign $reign): void
+    {
+        $championship = $reign->championship()->firstOrFail();
+        $wrestler = $reign->wrestler()->firstOrFail();
+
+        $reign->delete();
+
+        $this->renumberReigns($championship, $wrestler);
+    }
 }
