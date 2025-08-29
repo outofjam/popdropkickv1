@@ -10,14 +10,14 @@ return new class extends Migration
     {
         Schema::create('change_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('action'); // 'create', 'update', 'delete'
             $table->string('model_type'); // 'wrestler', 'championship', etc.
-            $table->unsignedBigInteger('model_id')->nullable(); // null for creates
+            $table->uuid('model_id')->nullable(); // null for creates
             $table->json('data'); // proposed changes
             $table->json('original_data')->nullable(); // for updates/deletes
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->foreignId('reviewer_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignUuid('reviewer_id')->nullable()->constrained('users')->nullOnDelete();
             $table->text('reviewer_comments')->nullable();
             $table->timestamp('reviewed_at')->nullable();
             $table->timestamps();
