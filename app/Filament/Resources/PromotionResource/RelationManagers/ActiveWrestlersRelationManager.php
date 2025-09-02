@@ -33,7 +33,7 @@ class ActiveWrestlersRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with('primaryName'))
+            ->modifyQueryUsing(fn(Builder $query) => $query->with('primaryName'))
             ->recordTitleAttribute('slug')
             ->columns([
                 TextColumn::make('slug'),
@@ -46,7 +46,9 @@ class ActiveWrestlersRelationManager extends RelationManager
                 CreateAction::make(),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()->url(
+                    static fn($record): string => route('filament.admin.resources.wrestlers.edit', $record)
+                ),
                 DeleteAction::make(),
             ])
             ->toolbarActions([

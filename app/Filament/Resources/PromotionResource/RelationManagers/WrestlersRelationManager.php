@@ -47,7 +47,9 @@ class WrestlersRelationManager extends RelationManager
                 CreateAction::make(),
             ])
             ->recordActions([
-                EditAction::make(),
+
+                EditAction::make()->url(
+                    static fn($record): string => route('filament.admin.resources.wrestlers.edit', $record)),
                 DeleteAction::make(),
             ])
             ->toolbarActions([
