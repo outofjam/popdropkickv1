@@ -7,14 +7,21 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @method static Model|static create(array $attributes = [])
+ * @method static Builder|static query()
+ *
+ * @mixin Builder
+ */
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
@@ -36,6 +43,8 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'role',
+        'reputation_score'
     ];
 
     /**
@@ -61,24 +70,83 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    public function changeRequests(): HasMany
+    {
+        return $this->hasMany(ChangeRequest::class);
+    }
+
+    public function reviewedChangeRequests(): HasMany
+    {
+        return $this->hasMany(ChangeRequest::class, 'reviewer_id');
+    }
+
+    /**
+     * Check if user can auto-approve certain types of changes
+     */
+    public function canAutoApprove(string $action): bool
+    {
+        // Admins can auto-approve everything
+        if ($this->role === 'admin') {
+            return true;
+        }
+
+        // Moderators can auto-approve most things
+        if ($this->role === 'moderator') {
+            // But maybe not championship lineage changes
+            $restrictedActions = ['championship_create', 'title_reign_create', 'title_reign_update'];
+            return !in_array($action, $restrictedActions);
+        }
+
+        // Trusted users based on reputation
+        if ($this->role === 'trusted' || $this->reputation_score >= 100) {
+            // Can auto-approve minor edits only
+            $allowedActions = [
+                'wrestler_update', // profile updates
+                'wrestler_alias_create', // adding ring names
+                'promotion_update' // minor promotion details
+            ];
+            return in_array($action, $allowedActions);
+        }
+
+        // Regular users need everything approved
+        return false;
+    }
+
+    /**
+     * Check if user can review change requests
+     */
+    public function canReview(): bool
+    {
+        return in_array($this->role, ['admin', 'moderator']);
+    }
+
+    /**
+     * Get user's approval statistics
+     */
+    public function getApprovalStats(): array
+    {
+        return [
+            'submitted' => $this->changeRequests()->count(),
+            'approved' => $this->changeRequests()->where('status', 'approved')->count(),
+            'rejected' => $this->changeRequests()->where('status', 'rejected')->count(),
+            'pending' => $this->changeRequests()->where('status', 'pending')->count(),
+            'approval_rate' => $this->calculateApprovalRate(),
+        ];
+    }
+
+    private function calculateApprovalRate(): float
+    {
+        $total = $this->changeRequests()->whereIn('status', ['approved', 'rejected'])->count();
+        if ($total === 0) {
+            return 0;
+        }
+
+        $approved = $this->changeRequests()->where('status', 'approved')->count();
+        return round(($approved / $total) * 100, 1);
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
-
-        Log::info('Filament login check', [
-            'email' => $this->email,
-            'guard' => Auth::getDefaultDriver(),
-            'guard_via_config' => config('filament.auth.guard'),
-            'auth_check' => Auth::check(),
-        ]);
-
         return true;
-        $emailCheck = str_ends_with($this->email, '@mac.com');
-        Log::info('Filament login check', [
-            'email' => $this->email,
-            'email_check' => $emailCheck,
-            'user_id' => $this->id,
-        ]);
-
-        return $emailCheck;
     }
 }

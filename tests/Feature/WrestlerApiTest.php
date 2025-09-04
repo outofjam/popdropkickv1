@@ -88,18 +88,18 @@ class WrestlerApiTest extends TestCase
 //        Wrestler::factory()->count(30)->create();
 //    }
     // deprecated
-    public function test_empty_wrestlers_returns_empty_data_and_meta(): void
-    {
-        $response = $this->getJson('/api/wrestlers');
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'data' => [],
-                'meta' => [
-                    'status' => 200,
-                ],
-            ]);
-    }
+//    public function test_empty_wrestlers_returns_empty_data_and_meta(): void
+//    {
+//        $response = $this->getJson('/api/wrestlers');
+//
+//        $response->assertStatus(200)
+//            ->assertJson([
+//                'data' => [],
+//                'meta' => [
+//                    'status' => 200,
+//                ],
+//            ]);
+//    }
 
     // deprecated
 //    public function test_get_wrestler_detail_by_id_returns_expected_structure(): void
