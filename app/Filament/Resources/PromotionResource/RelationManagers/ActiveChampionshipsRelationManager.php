@@ -28,9 +28,19 @@ class ActiveChampionshipsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn($query) => $query->with(['currentTitleReign.wrestler.primaryName'])
+            )
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('name'),
+                // Single current champ (or "Vacant")
+                TextColumn::make('currentTitleReign.wrestler.primaryName.name')
+                    ->label('Current Champion')
+                    ->formatStateUsing(fn ($state, $record) =>
+                    $record->currentTitleReign
+                        ? $record->currentTitleReign->wrestler->primaryName->name
+                        : 'Vacant'
+                    ),
             ])
             ->filters([
                 //
