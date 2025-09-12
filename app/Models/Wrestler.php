@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 /**
@@ -110,7 +111,7 @@ class Wrestler extends Model
         return $this->hasMany(WrestlerName::class);
     }
 
-    public function primaryName()
+    public function primaryName(): HasOne
     {
         return $this->hasOne(WrestlerName::class)->where('is_primary', true);
     }

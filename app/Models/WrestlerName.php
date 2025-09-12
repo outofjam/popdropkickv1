@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @method static Model|static create(array $attributes = [])
@@ -16,7 +17,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class WrestlerName extends Model
 {
-    use HasFactory, HasUuids, TracksCreatedAndUpdated;
+    use HasFactory;
+    use HasUuids;
+    use TracksCreatedAndUpdated;
 
     public $incrementing = false;
 
@@ -34,4 +37,9 @@ class WrestlerName extends Model
         'ended_at' => 'date',
         'is_primary' => 'boolean',
     ];
+
+    public function wrestler(): BelongsTo
+    {
+        return $this->belongsTo(Wrestler::class);
+    }
 }

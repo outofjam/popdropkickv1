@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use App\Enums\WinType;
 use App\Models\Championship;
+use App\Models\Wrestler;
+use App\Models\WrestlerName;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
@@ -62,6 +64,34 @@ class StoreTitleReignRequest extends FormRequest
             'lost_on' => 'nullable|date|after_or_equal:won_on',
             'lost_at' => 'nullable|string|max:255',
             'win_type' => ['required', new Enum(WinType::class)],
+            'wrestler_name_id_at_win' => 'nullable|exists:wrestler_names,id',
         ];
     }
+
+    // Ensure alias belongs to route wrestler
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($v) {
+            $aliasId = $this->input('wrestler_name_id_at_win');
+            if (!$aliasId) {
+                return;
+            }
+
+            $param = $this->route('wrestler');
+            $wrestlerId = $param instanceof Wrestler ? $param->getKey() : (is_string($param) ? $param : null);
+            if (!$wrestlerId) {
+                $v->errors()->add('wrestler_name_id_at_win', 'Unable to resolve wrestler from route.');
+                return;
+            }
+
+            $belongs = WrestlerName::whereKey($aliasId)
+                ->where('wrestler_id', $wrestlerId)
+                ->exists();
+
+            if (!$belongs) {
+                $v->errors()->add('wrestler_name_id_at_win', 'Alias does not belong to this wrestler.');
+            }
+        });
+    }
+
 }
