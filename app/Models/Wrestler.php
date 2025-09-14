@@ -37,6 +37,7 @@ class Wrestler extends Model
         'debut_date',
         'country',
 
+        'championship_id',
     ];
 
     public function sluggable(): array

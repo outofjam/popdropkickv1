@@ -105,7 +105,7 @@ class TitleReign extends Model
      */
     public function getResolvedWrestlerAttribute(): ?Wrestler
     {
-        if ($this->relationLoaded('aliasAtWin') && $this->aliasAtWin) {
+        if ( $this->aliasAtWin && $this->relationLoaded('aliasAtWin')) {
             return $this->aliasAtWin->wrestler ?? null;
         }
         if ($this->aliasAtWin) {
