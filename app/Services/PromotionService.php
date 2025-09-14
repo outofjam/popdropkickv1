@@ -13,26 +13,51 @@ class PromotionService
     public function getPaginatedWithCounts(int $perPage = 15): LengthAwarePaginator
     {
         return Promotion::withCount(['wrestlers', 'activeWrestlers'])
-            ->with('activeChampionships.currentTitleReign.wrestler.primaryName') // nested eager loading here
+            ->with([
+                // For listing cards we usually show active champs + current champion
+                'activeChampionships.currentTitleReign.aliasAtWin:id,wrestler_id,name',
+                'activeChampionships.currentTitleReign.aliasAtWin.wrestler:id,slug',
+                // Fallbacks if older rows still have wrestler_id populated
+                'activeChampionships.currentTitleReign.wrestler:id,slug',
+                'activeChampionships.currentTitleReign.wrestler.primaryName:id,wrestler_id,name',
+            ])
             ->paginate($perPage);
     }
 
+    /**
+     * Show a single promotion (optionally include inactive wrestlers).
+     */
     public function findByIdOrSlug(string $identifier, bool $includeInactive = false): ?Promotion
     {
         $with = [
+            // Wrestlers currently active in the promotion
             'activeWrestlers.names',
+            // Their active reigns (championship + alias-at-win + fallbacks)
             'activeWrestlers.activeTitleReigns.championship',
-            'activeChampionships.currentTitleReign.wrestler',
-            'championships.currentTitleReign.wrestler',
+            'activeWrestlers.activeTitleReigns.aliasAtWin:id,wrestler_id,name',
+            'activeWrestlers.activeTitleReigns.aliasAtWin.wrestler:id,slug',
+            'activeWrestlers.activeTitleReigns.wrestler:id,slug',
+            'activeWrestlers.activeTitleReigns.wrestler.primaryName:id,wrestler_id,name',
+
+            // Championships in this promotion (current champ resolution)
+            'activeChampionships.currentTitleReign.aliasAtWin:id,wrestler_id,name',
+            'activeChampionships.currentTitleReign.aliasAtWin.wrestler:id,slug',
+            'activeChampionships.currentTitleReign.wrestler:id,slug',
+            'activeChampionships.currentTitleReign.wrestler.primaryName:id,wrestler_id,name',
+
+            // If your resource shows inactive/retired belts too
+            'championships.currentTitleReign.aliasAtWin:id,wrestler_id,name',
+            'championships.currentTitleReign.aliasAtWin.wrestler:id,slug',
+            'championships.currentTitleReign.wrestler:id,slug',
+            'championships.currentTitleReign.wrestler.primaryName:id,wrestler_id,name',
         ];
 
         if ($includeInactive) {
-            $with[] = 'wrestlers.names';  // eager load relation, not a column
+            $with[] = 'wrestlers.names';
         }
 
         return Promotion::with($with)
-            ->where('id', $identifier)
-            ->orWhere('slug', $identifier)
+            ->where(static fn ($q) => $q->where('id', $identifier)->orWhere('slug', $identifier))
             ->first();
     }
 
@@ -40,7 +65,7 @@ class PromotionService
     {
         $promotion = Promotion::create($data);
 
-        // Eager load activeWrestlers to avoid null relations in resource
+        // Keep the index snappy after create
         $promotion->load('activeWrestlers');
 
         return $promotion;
@@ -48,18 +73,13 @@ class PromotionService
 
     public function getWrestlerCounts(Promotion $promotion): array
     {
-        // Try to use loaded relationships first to avoid extra queries
         $active = $promotion->relationLoaded('activeWrestlers') ? $promotion->activeWrestlers : null;
-        $all = $promotion->relationLoaded('wrestlers') ? $promotion->wrestlers : null;
+        $all    = $promotion->relationLoaded('wrestlers')       ? $promotion->wrestlers       : null;
 
-        $activeCount = $active ? $active->count() : $promotion->activeWrestlers()->count();
-        $totalCount = $all ? $all->count() : $promotion->wrestlers()->count();
+        $activeCount   = $active ? $active->count() : $promotion->activeWrestlers()->count();
+        $totalCount    = $all    ? $all->count()    : $promotion->wrestlers()->count();
         $inactiveCount = $totalCount - $activeCount;
 
-        return [
-            'active' => $activeCount,
-            'inactive' => $inactiveCount,
-        ];
+        return ['active' => $activeCount, 'inactive' => $inactiveCount];
     }
-
 }

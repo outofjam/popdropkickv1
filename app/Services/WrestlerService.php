@@ -7,7 +7,7 @@ use App\Models\Wrestler;
 use App\Models\WrestlerName;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class WrestlerService
 {
@@ -19,7 +19,8 @@ class WrestlerService
         return Wrestler::with([
             'names:id,wrestler_id,name,is_primary',
             'activePromotions:id,name,abbreviation',
-            'activeTitleReigns.championship',
+            'activeTitleReigns.championship:id,name,slug',
+            'activeTitleReigns.aliasAtWin:id,wrestler_id,name',
         ])->paginate($perPage);
     }
 
