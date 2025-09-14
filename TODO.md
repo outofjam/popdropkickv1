@@ -14,7 +14,7 @@
     - Days as Champion
 ## Ideas / Future Enhancements
 
-- [ ] Handle vacated titles more explicitly with detailed reasons
+- [ ] ~~Handle vacated titles more explicitly~~ <-- completed - add detailed reasons
 - [ ] Support multi-title reigns where one wrestler holds multiple championships simultaneously
 - [ ] Add pagination and filtering for title reigns
 - [ ] Add endpoints for match histories or event data
@@ -22,8 +22,8 @@
 ## Bugs / Fixes
 
 - [ ] Fix date formatting inconsistencies across resources
-- [ ] Refactor repeated code into shared resources (e.g., TitleReignResource)
+- [ ] ~~Refactor repeated code into shared resources (e.g., TitleReignResource)~~ Completed
 
 ---
 
-*Last updated: 2025-07-03*
+*Last updated: 2025-09-14*
