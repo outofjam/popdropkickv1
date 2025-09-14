@@ -26,7 +26,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Promotion extends Model
 {
-    use HasFactory, HasUuids, Sluggable, TracksCreatedAndUpdated;
+    use HasFactory;
+    use HasUuids;
+    use Sluggable;
+    use TracksCreatedAndUpdated;
 
     protected $fillable = ['name', 'abbreviation', 'country'];
 

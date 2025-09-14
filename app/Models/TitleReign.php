@@ -20,7 +20,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class TitleReign extends Model
 {
-    use HasFactory, HasUuids, TracksCreatedAndUpdated;
+    use HasFactory;
+    use HasUuids;
+    use TracksCreatedAndUpdated;
 
     public $incrementing = false;
 

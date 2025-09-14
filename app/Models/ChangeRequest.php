@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -16,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ChangeRequest extends Model
 {
-    use HasFactory;
+
 
     protected $fillable = [
         'user_id',
@@ -56,7 +55,7 @@ class ChangeRequest extends Model
             return null;
         }
 
-        $modelClass = match($this->model_type) {
+        $modelClass = match ($this->model_type) {
             'wrestler' => Wrestler::class,
             'championship' => Championship::class,
             'title_reign' => TitleReign::class,

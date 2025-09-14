@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Filament\Forms;
 
 
 /**
@@ -25,7 +24,10 @@ use Filament\Forms;
  */
 class Championship extends Model
 {
-    use HasFactory, HasUuids, Sluggable, TracksCreatedAndUpdated;
+    use HasFactory;
+    use HasUuids;
+    use Sluggable;
+    use TracksCreatedAndUpdated;
 
     public $incrementing = false;
 
@@ -39,6 +41,9 @@ class Championship extends Model
         'active',
     ];
 
+    /**
+     * @throws \Exception
+     */
     public static function getForm(): array
     {
         return [

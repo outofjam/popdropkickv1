@@ -11,13 +11,13 @@ class WrestlerAliasRequest extends FormRequest
         return true;
     }
 
-public function rules(): array
-{
-    return [
-        'aliases' => 'required|array|min:1',
-        'aliases.*.name' => 'required|string|max:255',
-        'aliases.*.is_primary' => 'sometimes|boolean',
-    ];
-}
+    public function rules(): array
+    {
+        return [
+            'aliases' => 'required|array|min:1',
+            'aliases.*.name' => 'required|string|max:255',
+            'aliases.*.is_primary' => 'sometimes|boolean',
+        ];
+    }
 
 }

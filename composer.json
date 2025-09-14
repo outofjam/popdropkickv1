@@ -18,6 +18,7 @@
         "vildanbina/hookshot": "^1.0"
     },
     "require-dev": {
+        "barryvdh/laravel-ide-helper": "^3.6",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.23",
         "mockery/mockery": "^1.6",
@@ -45,7 +46,10 @@
             "@php artisan filament:upgrade"
         ],
         "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+            "@php artisan ide-helper:generate",
+            "@php artisan ide-helper:models -N",
+            "@php artisan ide-helper:meta"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

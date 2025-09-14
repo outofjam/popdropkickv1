@@ -16,7 +16,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class WrestlerName extends Model
 {
-    use HasFactory, HasUuids, TracksCreatedAndUpdated;
+    use HasFactory;
+    use HasUuids;
+    use TracksCreatedAndUpdated;
 
     public $incrementing = false;
 

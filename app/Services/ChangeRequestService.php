@@ -109,7 +109,7 @@ class ChangeRequestService
     /**
      * @throws Exception
      */
-    protected function executeUpdate(ChangeRequest $changeRequest): mixed
+    protected function executeUpdate(ChangeRequest $changeRequest): Wrestler
     {
         return match($changeRequest->model_type) {
             'wrestler' => $this->wrestlerService->update(

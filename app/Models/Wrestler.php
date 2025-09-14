@@ -51,7 +51,7 @@ class Wrestler extends Model
     protected static function booted(): void
     {
         static::created(static function (self $wrestler) {
-            if (! empty($wrestler->slug)) {
+            if (!empty($wrestler->slug)) {
                 return; // slug already set, skip
             }
 
@@ -69,7 +69,7 @@ class Wrestler extends Model
 
     public static function generateUniqueSlug(string $baseSlug, int $counter = 0): string
     {
-        $slug = $counter > 0 ? $baseSlug.'-'.$counter : $baseSlug;
+        $slug = $counter > 0 ? $baseSlug . '-' . $counter : $baseSlug;
 
         if (static::where('slug', $slug)->exists()) {
             return static::generateUniqueSlug($baseSlug, $counter + 1);
