@@ -56,7 +56,7 @@ abstract class BaseResource extends JsonResource
     // NEW: Collection filtering helper
     protected function filterInactiveItems(Collection $allItems, Collection $activeItems): Collection
     {
-        return $allItems->reject(fn ($item) => $activeItems->contains('id', $item->id));
+        return $allItems->reject(fn($item) => $activeItems->contains('id', $item->id));
     }
 
     // NEW: Common metadata formatters
@@ -77,10 +77,10 @@ abstract class BaseResource extends JsonResource
         ];
     }
 
-    // ENHANCED: Title reign formatter (keeping your original logic)
     protected function formatTitleReigns($reigns)
     {
         return $reigns->map(function ($reign) {
+            $wrestler = $reign->resolved_wrestler;                 // may be null if truly missing
             return [
                 'championship_id' => $reign->championship->id,
                 'championship_name' => $reign->championship->name,
@@ -92,17 +92,23 @@ abstract class BaseResource extends JsonResource
                 'win_type' => $reign->win_type ?? null,
                 'reign_length' => $reign->reign_length_in_days,
                 'reign_length_human' => $reign->reign_length_human,
+
+                // new fields
+                'wrestler' => $wrestler ? $this->formatWrestlerReference($wrestler) : null,
+                'alias_name' => $reign->resolved_display_name_at_win, // alias at win, or primary
             ];
         });
     }
 
-    // NEW: Simplified title reign formatter for championship lists
+
     protected function formatTitleReignsForChampionship($reigns)
     {
         return $reigns->map(function ($reign) {
+            $wrestler = $reign->resolved_wrestler;
             return [
                 'id' => $reign->id,
-                'wrestler' => $this->formatWrestlerReference($reign->wrestler),
+                'wrestler' => $wrestler ? $this->formatWrestlerReference($wrestler) : null,
+                'alias_name' => $reign->resolved_display_name_at_win, // alias at win, or primary
                 'reign_length' => $reign->reign_length_in_days,
                 'reign_length_human' => $reign->reign_length_human,
                 'won_on' => $this->formatDate($reign->won_on),

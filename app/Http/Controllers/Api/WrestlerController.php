@@ -154,19 +154,42 @@ class WrestlerController extends Controller
      */
     public function show(Wrestler $wrestler): JsonResponse
     {
+        $wrestler->load([
+            'names:id,wrestler_id,name,is_primary',
+            'promotions:id,name,slug,abbreviation',
+            'activePromotions:id,name,slug,abbreviation',
+
+            // All reigns (ordered) + alias/fallback graph
+            'titleReigns' => fn ($q) => $q->orderBy('won_on')->with([
+                'championship:id,name,slug',
+                'aliasAtWin.wrestler:id,slug',     // preferred path
+                'wrestler:id,slug',                // fallback for old rows
+                'wrestler.primaryName:id,wrestler_id,name',
+            ]),
+
+            // Active reigns too
+            'activeTitleReigns' => fn ($q) => $q->orderBy('won_on')->with([
+                'championship:id,name,slug',
+                'aliasAtWin.wrestler:id,slug',
+                'wrestler:id,slug',
+                'wrestler.primaryName:id,wrestler_id,name',
+            ]),
+        ]);
+
         return $this->success(
             new WrestlerResource($wrestler),
             null,
             [
                 'counts' => [
-                    'title_reigns' => $wrestler->titleReigns->count(),
+                    'title_reigns'        => $wrestler->titleReigns->count(),
                     'active_title_reigns' => $wrestler->activeTitleReigns->count(),
-                    'promotions' => $wrestler->promotions->count(),
-                    'active_promotions' => $wrestler->activePromotions->count(),
+                    'promotions'          => $wrestler->promotions->count(),
+                    'active_promotions'   => $wrestler->activePromotions->count(),
                 ],
             ]
         );
     }
+
 
     /**
      * Create a new wrestler

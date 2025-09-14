@@ -113,27 +113,31 @@ class ChampionshipController extends Controller
     public function show(string $identifier): JsonResponse
     {
         $championship = Championship::query()
-            ->where('id', $identifier)
-            ->orWhere('slug', $identifier)
+            ->where(fn ($q) => $q->whereKey($identifier)->orWhere('slug', $identifier))
             ->with([
                 'promotion:id,name,slug',
-                'titleReigns.wrestler:id,slug',
-                'titleReigns' => static function ($query) {
-                    $query->orderBy('won_on');
-                },
+                // Order reigns by won_on (ascending or descending; resource uses latest via collection)
+                'titleReigns' => fn ($q) => $q
+                    ->orderBy('won_on')
+                    ->with([
+                        'championship:id,name,slug',        // required by formatTitleReigns
+                        'aliasAtWin:id,wrestler_id,name',
+                        'aliasAtWin.wrestler:id,slug',
+                        // Fallback path if old data has no alias FK:
+                        'wrestler:id,slug',
+                        'wrestler.primaryName:id,wrestler_id,name',
+                    ]),
             ])
             ->first();
 
-        if (!$championship) {
+        if (! $championship) {
             return $this->error('Championship not found', 404);
         }
-
-        $titleReignsCount = $championship->titleReigns->count();
 
         return $this->success(
             new ChampionshipResource($championship),
             null,
-            ['counts' => ['title_reigns' => $titleReignsCount]]
+            ['counts' => ['title_reigns' => $championship->titleReigns->count()]]
         );
     }
 
@@ -184,24 +188,29 @@ class ChampionshipController extends Controller
     public function update(UpdateChampionshipRequest $request, string $identifier): JsonResponse
     {
         $championship = Championship::query()
-            ->where('id', $identifier)
-            ->orWhere('slug', $identifier)
-            ->with([
-                'promotion:id,name,slug',
-                'titleReigns.wrestler:id,slug',
-                'titleReigns' => static function ($query) {
-                    $query->orderBy('won_on');
-                },
-            ])
+            ->where(fn ($q) => $q->whereKey($identifier)->orWhere('slug', $identifier))
             ->first();
 
-        if (!$championship) {
+        if (! $championship) {
             return $this->error('Championship not found', 404);
         }
 
-        $updatedChampionship = $this->service->updateChampionship($championship, $request->validated());
+        $updated = $this->service->updateChampionship($championship, $request->validated());
 
-        return $this->success($updatedChampionship, 'Championship updated successfully');
+        // Reload with the same eager-load graph used in show()
+        $updated->load([
+            'promotion:id,name,slug',
+            'titleReigns' => fn ($q) => $q
+                ->orderBy('won_on')
+                ->with([
+                    'aliasAtWin:id,wrestler_id,name',
+                    'aliasAtWin.wrestler:id,slug',
+                    'wrestler:id,slug',
+                    'wrestler.primaryName:id,wrestler_id,name',
+                ]),
+        ]);
+
+        return $this->success(new ChampionshipResource($updated), 'Championship updated successfully');
     }
 
     /**

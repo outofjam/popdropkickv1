@@ -38,6 +38,7 @@ class TitleReign extends Model
         'lost_at',
         'win_type',
         'reign_number',
+        'wrestler_name_id_at_win'
     ];
 
     protected $casts = [
@@ -51,10 +52,10 @@ class TitleReign extends Model
         return $this->belongsTo(Championship::class);
     }
 
-    public function wrestler(): BelongsTo
-    {
-        return $this->belongsTo(Wrestler::class);
-    }
+//    public function wrestler(): BelongsTo
+//    {
+//        return $this->belongsTo(Wrestler::class);
+//    }
 
     // In TitleReign model
     public function getReignLengthInDaysAttribute(): int
@@ -81,4 +82,67 @@ class TitleReign extends Model
                 'join' => true, // no commas
             ]);
     }
+
+    // app/Models/TitleReign.php
+    public function aliasAtWin(): BelongsTo
+    {
+        return $this->belongsTo(WrestlerName::class, 'wrestler_name_id_at_win');
+    }
+
+    public function wrestler(): BelongsTo
+    {
+        return $this->belongsTo(Wrestler::class, 'wrestler_id');
+    }
+
+    // app/Models/TitleReign.php
+
+
+    /**
+     * The wrestler we should display for this reign.
+     * 1) aliasAtWin->wrestler (preferred)
+     * 2) wrestler (if column exists and set)
+     * 3) null
+     */
+    public function getResolvedWrestlerAttribute(): ?Wrestler
+    {
+        if ( $this->aliasAtWin && $this->relationLoaded('aliasAtWin')) {
+            return $this->aliasAtWin->wrestler ?? null;
+        }
+        if ($this->aliasAtWin) {
+            return $this->aliasAtWin->wrestler()->first();
+        }
+        // fallback if you still have wrestler_id
+        if ($this->relationLoaded('wrestler')) {
+            return $this->wrestler;
+        }
+        return $this->wrestler()->first();
+    }
+
+    /**
+     * The alias record we should display:
+     * 1) aliasAtWin (preferred)
+     * 2) resolved wrestler's primaryName
+     */
+    public function getResolvedAliasAtWinAttribute(): ?WrestlerName
+    {
+        if ($this->aliasAtWin) {
+            return $this->aliasAtWin;
+        }
+        $w = $this->resolved_wrestler;
+        if ($w) {
+            return $w->primaryName()->first();
+        }
+        return null;
+    }
+
+    /**
+     * Convenience string: the name we should show.
+     */
+    public function getResolvedDisplayNameAtWinAttribute(): ?string
+    {
+        return $this->resolved_alias_at_win?->name;
+    }
+
+
+
 }

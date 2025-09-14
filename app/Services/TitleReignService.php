@@ -1,5 +1,7 @@
 <?php
 
+// app/Services/TitleReignService.php
+
 namespace App\Services;
 
 use App\Models\Championship;
@@ -10,18 +12,29 @@ class TitleReignService
 {
     public function storeForWrestler(array $data, Wrestler $wrestler): TitleReign
     {
+        // Default alias to primary if omitted
+        $data['wrestler_name_id_at_win'] ??= $wrestler->primaryName()->value('id');
 
-        // Provide a default reign_number to pass DB NOT NULL constraint
-        $data['reign_number'] = 1;
-        // Create reign via relationship, sets wrestler_id automatically
-        $reign = $wrestler->titleReigns()->create($data);
+        // Create through relation -> sets wrestler_id
+        $reign = $wrestler->titleReigns()->create([
+            'championship_id'          => $data['championship_id'],
+            'won_on'                   => $data['won_on'],
+            'won_at'                   => $data['won_at']  ?? null,
+            'lost_on'                  => $data['lost_on'] ?? null,
+            'lost_at'                  => $data['lost_at'] ?? null,
+            'win_type'                 => $data['win_type'] ?? null,
+            'reign_number'             => 1, // will be renumbered
+            'wrestler_name_id_at_win'  => $data['wrestler_name_id_at_win'],
+        ]);
 
-        // Load Championship model to pass to renumberReigns
-        $championship = $reign->championship()->firstOrFail();
+        $this->renumberReigns($reign->championship, $wrestler);
 
-        $this->renumberReigns($championship, $wrestler);
-
-        return $reign;
+        return $reign->load([
+            'championship:id,name,slug',
+            'aliasAtWin.wrestler:id,slug',
+            'wrestler:id,slug',
+            'wrestler.primaryName:id,wrestler_id,name',
+        ]);
     }
 
     public function updateReign(TitleReign $reign, array $data): void
@@ -29,7 +42,7 @@ class TitleReignService
         $reign->update($data);
 
         $championship = $reign->championship()->firstOrFail();
-        $wrestler = $reign->wrestler()->firstOrFail();
+        $wrestler     = $reign->wrestler; // use relation property (already a model)
 
         $this->renumberReigns($championship, $wrestler);
     }
@@ -50,7 +63,7 @@ class TitleReignService
     public function deleteReign(TitleReign $reign): void
     {
         $championship = $reign->championship()->firstOrFail();
-        $wrestler = $reign->wrestler()->firstOrFail();
+        $wrestler     = $reign->wrestler; // use relation property
 
         $reign->delete();
 
