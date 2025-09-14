@@ -30,15 +30,8 @@ class StoreWrestlerRequest extends FormRequest
             'aliases.*.started_at' => ['nullable', 'date'],
             'aliases.*.ended_at' => ['nullable', 'date'],
 
-            // NEW: Validate optional title reigns array
-            'title_reigns' => ['nullable', 'array'],
-            'title_reigns.*.championship_id' => ['required', 'uuid', 'exists:championships,id'],
-            'title_reigns.*.won_on' => ['required', 'date'],
-            'title_reigns.*.won_at' => ['nullable', 'string', 'max:255'],
-            'title_reigns.*.lost_on' => ['nullable', 'date', 'after_or_equal:title_reigns.*.won_on'],
-            'title_reigns.*.lost_at' => ['nullable', 'string', 'max:255'],
-            'title_reigns.*.win_type' => ['required', 'string', 'max:255'],
-            'title_reigns.*.reign_number' => ['required', 'integer', 'min:1'],
+            // 🚫 Explicitly disallow reigns in this request
+            'title_reigns' => ['prohibited'],
         ];
     }
 

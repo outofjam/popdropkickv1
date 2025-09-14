@@ -14,6 +14,9 @@ class WrestlerService
     /**
      * Get paginated wrestlers with relations.
      */
+    /**
+     * @deprecated The /wrestlers endpoint is deprecated and removed from the list of active endpoints
+     */
     public function getPaginated(int $perPage = 15): LengthAwarePaginator
     {
         return Wrestler::with([
@@ -62,7 +65,8 @@ class WrestlerService
         $this->syncPromotionRelations($wrestler, 'promotions', $promotionIds);
         $this->syncPromotionRelations($wrestler, 'activePromotions', $activePromotionIds);
 
-        $this->syncTitleReigns($wrestler, $titleReigns);
+        // title reigns use a dedicated API after the wrestler is created, so we don't need to sync them here'
+        // $this->syncTitleReigns($wrestler, $titleReigns);
 
         $this->generateSlugFor($wrestler);
 
@@ -81,7 +85,7 @@ class WrestlerService
 
         $wrestlerData = $this->extractWrestlerData($data);
 
-        if (! empty($wrestlerData)) {
+        if (!empty($wrestlerData)) {
             $wrestler->update($wrestlerData);
         }
 
@@ -96,9 +100,11 @@ class WrestlerService
         $this->syncPromotionRelations($wrestler, 'promotions', $promotionIds);
         $this->syncPromotionRelations($wrestler, 'activePromotions', $activePromotionIds);
 
-        if (is_array($titleReigns)) {
-            $this->syncTitleReigns($wrestler, $titleReigns, true);
-        }
+
+        // title reigns use a dedicated API after the wrestler is created, so we don't need to sync them here'
+        //        if (is_array($titleReigns)) {
+        //            $this->syncTitleReigns($wrestler, $titleReigns, true);
+        //        }
 
         return $this->loadRelations($wrestler);
     }
@@ -109,7 +115,7 @@ class WrestlerService
      */
     private function syncPromotionRelations(Wrestler $wrestler, string $relationName, ?array $identifiers): void
     {
-        if (! is_array($identifiers)) {
+        if (!is_array($identifiers)) {
             return;
         }
 
@@ -119,13 +125,13 @@ class WrestlerService
         $strings = [];
 
         foreach ($identifiers as $idOrString) {
-            $idOrString = (string) $idOrString;
+            $idOrString = (string)$idOrString;
             if (preg_match($uuidPattern, $idOrString)) {
                 // It's a UUID string, treat as ID
                 $ids[] = $idOrString;
             } elseif (ctype_digit($idOrString)) {
                 // Numeric string, convert to int
-                $ids[] = (int) $idOrString;
+                $ids[] = (int)$idOrString;
             } else {
                 // Otherwise treat as string to match name/slug/abbr
                 $strings[] = $idOrString;
@@ -133,7 +139,7 @@ class WrestlerService
         }
 
         // Find IDs matching the string identifiers by name, slug, or abbreviation
-        if (! empty($strings)) {
+        if (!empty($strings)) {
             $matchedIds = Promotion::where(static function ($query) use ($strings) {
                 $query->whereIn('name', $strings)
                     ->orWhereIn('slug', $strings)
@@ -166,9 +172,9 @@ class WrestlerService
             return;
         }
 
-        $aliases = array_map(static fn ($alias) => array_merge(['is_primary' => false], $alias), $aliases);
+        $aliases = array_map(static fn($alias) => array_merge(['is_primary' => false], $alias), $aliases);
 
-        if (! collect($aliases)->contains('is_primary', true)) {
+        if (!collect($aliases)->contains('is_primary', true)) {
             $aliases[0]['is_primary'] = true;
         }
 
@@ -203,6 +209,9 @@ class WrestlerService
     /**
      * Sync title reigns for the wrestler.
      */
+    /**
+     * @deprecated Title Sync is no longer performed on /wrestler create or update
+     */
     private function syncTitleReigns(Wrestler $wrestler, array $titleReignsData, bool $isUpdate = false): void
     {
         if ($isUpdate) {
@@ -215,16 +224,16 @@ class WrestlerService
     }
 
     public function addAliases(Wrestler $wrestler, array $aliases): array
-{
-    return collect($aliases)->map(function ($data) use ($wrestler) {
-        return $this->addAlias($wrestler, $data);
-    })->all();
-}
+    {
+        return collect($aliases)->map(function ($data) use ($wrestler) {
+            return $this->addAlias($wrestler, $data);
+        })->all();
+    }
 
 
     public function addAlias(Wrestler $wrestler, array $data): WrestlerName
     {
-        $data['is_primary'] = (bool) ($data['is_primary'] ?? false);
+        $data['is_primary'] = (bool)($data['is_primary'] ?? false);
 
         // If making it primary, unmark others
         if ($data['is_primary']) {
@@ -245,7 +254,7 @@ class WrestlerService
     {
         $alias = $wrestler->names()->where('id', $aliasId)->first();
 
-        if (! $alias) {
+        if (!$alias) {
             return false;
         }
 
@@ -303,7 +312,7 @@ class WrestlerService
     {
         $toAttach = array_diff($promotionIds, $removeIds);
 
-        if (! empty($toAttach)) {
+        if (!empty($toAttach)) {
             $wrestler->promotions()->syncWithoutDetaching($toAttach);
         }
     }
@@ -322,7 +331,7 @@ class WrestlerService
 
         // Make sure they're in `promotions` before activating
         $missingInInactive = array_diff($toAttach, $currentPromotionIds);
-        if (! empty($missingInInactive)) {
+        if (!empty($missingInInactive)) {
             $wrestler->promotions()->syncWithoutDetaching($missingInInactive);
         }
 

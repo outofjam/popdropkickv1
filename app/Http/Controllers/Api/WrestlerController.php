@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreWrestlerRequest;
 use App\Http\Requests\UpdateWrestlerRequest;
-use App\Http\Resources\WrestlerListResource;
 use App\Http\Resources\WrestlerResource;
 use App\Models\Wrestler;
 use App\Services\ChangeRequestService;
@@ -77,12 +76,12 @@ class WrestlerController extends Controller
      * @responseType \Illuminate\Http\Resources\Json\AnonymousResourceCollection<WrestlerListResource>
      */
     // removed from endpoints. this one doesn't make sense
-    public function index(): JsonResponse
-    {
-        $wrestlers = $this->service->getPaginated();
-
-        return $this->ok(WrestlerListResource::collection($wrestlers));
-    }
+    //    public function index(): JsonResponse
+    //    {
+    //        $wrestlers = $this->service->getPaginated();
+    //
+    //        return $this->ok(WrestlerListResource::collection($wrestlers));
+    //    }
 
     /**
      * Get details for a single wrestler
@@ -160,7 +159,7 @@ class WrestlerController extends Controller
             'activePromotions:id,name,slug,abbreviation',
 
             // All reigns (ordered) + alias/fallback graph
-            'titleReigns' => fn ($q) => $q->orderBy('won_on')->with([
+            'titleReigns' => fn($q) => $q->orderBy('won_on')->with([
                 'championship:id,name,slug',
                 'aliasAtWin.wrestler:id,slug',     // preferred path
                 'wrestler:id,slug',                // fallback for old rows
@@ -168,7 +167,7 @@ class WrestlerController extends Controller
             ]),
 
             // Active reigns too
-            'activeTitleReigns' => fn ($q) => $q->orderBy('won_on')->with([
+            'activeTitleReigns' => fn($q) => $q->orderBy('won_on')->with([
                 'championship:id,name,slug',
                 'aliasAtWin.wrestler:id,slug',
                 'wrestler:id,slug',
@@ -181,10 +180,10 @@ class WrestlerController extends Controller
             null,
             [
                 'counts' => [
-                    'title_reigns'        => $wrestler->titleReigns->count(),
+                    'title_reigns' => $wrestler->titleReigns->count(),
                     'active_title_reigns' => $wrestler->activeTitleReigns->count(),
-                    'promotions'          => $wrestler->promotions->count(),
-                    'active_promotions'   => $wrestler->activePromotions->count(),
+                    'promotions' => $wrestler->promotions->count(),
+                    'active_promotions' => $wrestler->activePromotions->count(),
                 ],
             ]
         );
