@@ -16,7 +16,7 @@ class ChampionshipResource extends BaseResource
             'id'   => $this->resource->id,
             'name' => $this->resource->name,
             'slug' => $this->resource->slug,
-
+            'active' => (bool) $this->resource->active,
             'status'           => $currentChampion ? 'active' : 'vacant',
             'current_champion' => $currentChampion?->toArray($request),
 
