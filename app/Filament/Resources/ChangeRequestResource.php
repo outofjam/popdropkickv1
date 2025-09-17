@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
@@ -9,32 +10,54 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Actions\ViewAction;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use App\Filament\Resources\ChangeRequestResource\Pages\ListChangeRequests;
 use App\Filament\Resources\ChangeRequestResource\Pages\ViewChangeRequest;
-use App\Filament\Resources\ChangeRequestResource\Pages;
 use App\Models\ChangeRequest;
 use App\Services\ChangeRequestService;
 use Exception;
-use Filament\Forms;
-use Filament\Forms\Form;
+use BackedEnum;
+
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 class ChangeRequestResource extends Resource
 {
     protected static ?string $model = ChangeRequest::class;
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static string |BackedEnum| null $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Change Requests';
     protected static ?int $navigationSort = 1;
+
+
+    protected static function escapeValue(mixed $value): string
+    {
+        if (is_null($value)) {
+            return '<em>null</em>';
+        }
+
+        if (is_bool($value)) {
+            if ($value) {
+                return 'true';
+            }
+            return 'false';
+        }
+
+        if (is_array($value) || is_object($value)) {
+            // Pretty JSON in a <pre>, but escape the JSON text itself
+            $json = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            return '<pre class="text-xs whitespace-pre-wrap">'.e($json).'</pre>';
+        }
+
+        // Scalars / stringable
+        return e((string) $value);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -74,12 +97,41 @@ class ChangeRequestResource extends Resource
                     ])->columns(),
 
                 Section::make('Proposed Changes')
+//                    ->columns(2)
+                    ->columnSpan(2)
                     ->schema([
-                        Placeholder::make('changes')
-                            ->label('')
-                            ->content(static function (ChangeRequest $record): HtmlString {
-                                return new HtmlString(self::formatChanges($record));
+                        KeyValueEntry::make('new_values')
+                            ->label('New Values')
+                            ->state(function (?ChangeRequest $record) {
+                                if (! $record || ! is_array($record->data)) {
+                                    return [];
+                                }
+
+                                if (collect($record->data)->every(fn ($v) => is_scalar($v) || is_null($v))) {
+                                    return $record->data;
+                                }
+
+                                return collect($record->data)
+                                    ->map(fn ($v) => is_scalar($v) ? $v : json_encode($v))
+                                    ->all();
                             }),
+
+                        KeyValueEntry::make('original_values')
+                            ->label('Original Values')
+                            ->state(function (?ChangeRequest $record) {
+                                if (! $record || ! is_array($record->original_data ?? null)) {
+                                    return [];
+                                }
+
+                                if (collect($record->original_data)->every(fn ($v) => is_scalar($v) || is_null($v))) {
+                                    return $record->original_data;
+                                }
+
+                                return collect($record->original_data)
+                                    ->map(fn ($v) => is_scalar($v) ? $v : json_encode($v))
+                                    ->all();
+                            })
+                            ->visible(fn (?ChangeRequest $record) => filled($record?->original_data)),
                     ]),
 
                 Section::make('Review')
@@ -96,7 +148,7 @@ class ChangeRequestResource extends Resource
                             ->disabled()
                             ->visible(static fn (ChangeRequest $record) => $record->reviewed_at !== null),
                     ])
-                    ->visible(static fn (ChangeRequest $record) => $record->status !== 'pending'),
+
             ]);
     }
 
@@ -109,8 +161,9 @@ class ChangeRequestResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                BadgeColumn::make('model_type')
+                TextColumn::make('model_type')
                     ->label('Type')
+                    ->badge()
                     ->colors([
                         'primary' => 'wrestler',
                         'success' => 'championship',
@@ -118,14 +171,16 @@ class ChangeRequestResource extends Resource
                         'info' => 'promotion',
                     ]),
 
-                BadgeColumn::make('action')
+                TextColumn::make('action')
+                    ->badge()
                     ->colors([
                         'success' => 'create',
                         'warning' => 'update',
                         'danger' => 'delete',
                     ]),
 
-                BadgeColumn::make('status')
+                TextColumn::make('status')
+                    ->badge()
                     ->colors([
                         'warning' => 'pending',
                         'success' => 'approved',
@@ -260,9 +315,10 @@ class ChangeRequestResource extends Resource
     {
         if ($record->action === 'create') {
             return '<div class="space-y-2">' .
-                collect($record->data)->map(static fn($value, $key) =>
-                    "<div><strong>" . ucfirst(str_replace('_', ' ', $key)) . ":</strong> " . htmlspecialchars($value ?? 'null') . "</div>"
-                )->implode('') .
+                collect($record->data ?? [])->map(static function ($value, $key) {
+                    $label = Str::of($key)->snake()->replace('_', ' ')->title();
+                    return "<div><strong>".e($label).":</strong> ".static::escapeValue($value)."</div>";
+                })->implode('') .
                 '</div>';
         }
 
