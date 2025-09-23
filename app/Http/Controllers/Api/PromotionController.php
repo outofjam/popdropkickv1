@@ -67,7 +67,7 @@ class PromotionController extends Controller
     {
         $includeInactive = request()->boolean('include_inactive');
 
-        $promotion = $this->service->findByIdOrSlug($identifier, $includeInactive);
+        $promotion = $this->service->findByIdOrSlugCached($identifier, $includeInactive);
 
         if (!$promotion) {
             return $this->error('Promotion not found', 404);

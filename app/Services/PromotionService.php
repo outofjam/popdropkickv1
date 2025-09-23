@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Promotion;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class PromotionService
 {
@@ -24,28 +26,35 @@ class PromotionService
             ->paginate($perPage);
     }
 
+
+    public function findByIdOrSlugCached(string $identifier, bool $includeInactive = false): ?Promotion
+    {
+        $cacheKey = "promotion:{$identifier}:inclInactive:".(int)$includeInactive;
+
+        return Cache::remember($cacheKey, 300, function () use ($identifier, $includeInactive) {
+            return $this->findByIdOrSlug($identifier, $includeInactive);
+        });
+    }
+
     /**
      * Show a single promotion (optionally include inactive wrestlers).
      */
+
     public function findByIdOrSlug(string $identifier, bool $includeInactive = false): ?Promotion
     {
         $with = [
-            // Wrestlers currently active in the promotion
             'activeWrestlers.names',
-            // Their active reigns (championship + alias-at-win + fallbacks)
             'activeWrestlers.activeTitleReigns.championship',
             'activeWrestlers.activeTitleReigns.aliasAtWin:id,wrestler_id,name',
             'activeWrestlers.activeTitleReigns.aliasAtWin.wrestler:id,slug',
             'activeWrestlers.activeTitleReigns.wrestler:id,slug',
             'activeWrestlers.activeTitleReigns.wrestler.primaryName:id,wrestler_id,name',
 
-            // Championships in this promotion (current champ resolution)
             'activeChampionships.currentTitleReign.aliasAtWin:id,wrestler_id,name',
             'activeChampionships.currentTitleReign.aliasAtWin.wrestler:id,slug',
             'activeChampionships.currentTitleReign.wrestler:id,slug',
             'activeChampionships.currentTitleReign.wrestler.primaryName:id,wrestler_id,name',
 
-            // If your resource shows inactive/retired belts too
             'championships.currentTitleReign.aliasAtWin:id,wrestler_id,name',
             'championships.currentTitleReign.aliasAtWin.wrestler:id,slug',
             'championships.currentTitleReign.wrestler:id,slug',
@@ -56,9 +65,25 @@ class PromotionService
             $with[] = 'wrestlers.names';
         }
 
-        return Promotion::with($with)
-            ->where(static fn ($q) => $q->where('id', $identifier)->orWhere('slug', $identifier))
-            ->first();
+        // 1) Fast point lookup by PK *or* slug (no OR).
+        $promotion = null;
+
+        if (Str::isUuid($identifier)) {
+            $promotion = Promotion::find($identifier);
+        }
+
+        if (! $promotion) {
+            $promotion = Promotion::where('slug', $identifier)->first();
+        }
+
+        if (! $promotion) {
+            return null;
+        }
+
+        // 2) Load the heavy graph only once we have the single row.
+        $promotion->load($with);
+
+        return $promotion;
     }
 
     public function create(array $data): Promotion
