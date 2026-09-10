@@ -94,6 +94,45 @@ class TitleReignApiTest extends TestCase
         $this->assertDatabaseMissing('title_reigns', ['id' => $titleReign->id]);
     }
 
+    public function test_deleting_a_reign_renumbers_the_remaining_reigns(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+
+        $wrestler = Wrestler::factory()->create();
+        $championship = Championship::factory()->create();
+
+        $reign1 = TitleReign::factory()->create([
+            'wrestler_id' => $wrestler->id,
+            'championship_id' => $championship->id,
+            'won_on' => '2020-01-01',
+            'lost_on' => '2020-02-01',
+            'reign_number' => 1,
+        ]);
+        $reign2 = TitleReign::factory()->create([
+            'wrestler_id' => $wrestler->id,
+            'championship_id' => $championship->id,
+            'won_on' => '2020-03-01',
+            'lost_on' => '2020-04-01',
+            'reign_number' => 2,
+        ]);
+        $reign3 = TitleReign::factory()->create([
+            'wrestler_id' => $wrestler->id,
+            'championship_id' => $championship->id,
+            'won_on' => '2020-05-01',
+            'lost_on' => '2020-06-01',
+            'reign_number' => 3,
+        ]);
+
+        $response = $this->deleteJson("/api/title-reigns/{$reign2->id}");
+
+        $response->assertStatus(200);
+
+        $this->assertDatabaseMissing('title_reigns', ['id' => $reign2->id]);
+        $this->assertEquals(1, $reign1->fresh()->reign_number);
+        $this->assertEquals(2, $reign3->fresh()->reign_number);
+    }
+
     public function test_wrestler_can_hold_multiple_active_title_reigns_simultaneously(): void
     {
         $user = User::factory()->create();

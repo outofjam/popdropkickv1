@@ -40,7 +40,7 @@ class TitleReignController extends Controller
 
     public function destroy(TitleReign $reign): JsonResponse
     {
-        $reign->delete();
+        $this->service->deleteReign($reign);
 
         return $this->ok(null, 'Title Reign Deleted');
     }
