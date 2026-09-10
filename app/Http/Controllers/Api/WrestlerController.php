@@ -184,6 +184,8 @@ class WrestlerController extends Controller
                     'active_title_reigns' => $wrestler->activeTitleReigns->count(),
                     'promotions' => $wrestler->promotions->count(),
                     'active_promotions' => $wrestler->activePromotions->count(),
+                    'championships_held' => $wrestler->titleReigns->pluck('championship_id')->unique()->count(),
+                    'days_as_champion' => $wrestler->titleReigns->sum('reign_length_in_days'),
                 ],
             ]
         );

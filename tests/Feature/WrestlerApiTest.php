@@ -4,6 +4,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Championship;
 use App\Models\Promotion;
 use App\Models\Wrestler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -134,6 +135,41 @@ class WrestlerApiTest extends TestCase
 
                 ],
                 'meta' => ['status', 'timestamps'],
+            ]);
+    }
+
+    public function test_show_includes_career_statistics(): void
+    {
+        $wrestler = Wrestler::factory()->create();
+        $championshipA = Championship::factory()->create();
+        $championshipB = Championship::factory()->create();
+
+        $wrestler->titleReigns()->create([
+            'championship_id' => $championshipA->id,
+            'won_on' => '2020-01-01',
+            'lost_on' => '2020-01-11',
+            'win_type' => 'pinfall',
+            'reign_number' => 1,
+        ]);
+
+        $wrestler->titleReigns()->create([
+            'championship_id' => $championshipB->id,
+            'won_on' => '2021-01-01',
+            'lost_on' => '2021-01-21',
+            'win_type' => 'pinfall',
+            'reign_number' => 1,
+        ]);
+
+        $response = $this->getJson("/api/wrestlers/{$wrestler->slug}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'meta' => [
+                    'counts' => [
+                        'championships_held' => 2,
+                        'days_as_champion' => 30,
+                    ],
+                ],
             ]);
     }
 }
