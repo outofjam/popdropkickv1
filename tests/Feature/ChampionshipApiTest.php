@@ -12,6 +12,21 @@ class ChampionshipApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_index_lists_championships_across_promotions(): void
+    {
+        $promotionA = Promotion::factory()->create(['name' => 'Promotion A']);
+        $promotionB = Promotion::factory()->create(['name' => 'Promotion B']);
+
+        $championshipA = Championship::factory()->create(['promotion_id' => $promotionA->id]);
+        $championshipB = Championship::factory()->create(['promotion_id' => $promotionB->id]);
+
+        $response = $this->getJson('/api/championships');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $championshipA->id])
+            ->assertJsonFragment(['id' => $championshipB->id]);
+    }
+
     public function test_can_create_championship_for_promotion(): void
     {
         $user = User::factory()->create();

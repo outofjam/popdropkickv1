@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Championship;
 use App\Models\Promotion;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ChampionshipService
 {
@@ -13,6 +14,20 @@ class ChampionshipService
     public function createChampionship(Promotion $promotion, array $data): Championship
     {
         return $promotion->championships()->create($data);
+    }
+
+    /**
+     * Paginated list with each championship's promotion and current champion resolved.
+     */
+    public function getPaginated(int $perPage = 15): LengthAwarePaginator
+    {
+        return Championship::with([
+            'promotion:id,name,slug',
+            'currentTitleReign.aliasAtWin:id,wrestler_id,name',
+            'currentTitleReign.aliasAtWin.wrestler:id,slug',
+            'currentTitleReign.wrestler:id,slug',
+            'currentTitleReign.wrestler.primaryName:id,wrestler_id,name',
+        ])->paginate($perPage);
     }
 
     /**

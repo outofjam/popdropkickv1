@@ -18,6 +18,7 @@ Route::get('/wrestlers/{wrestler}', [WrestlerController::class, 'show'])->name('
 Route::get('/promotions', [PromotionController::class, 'index']);
 Route::get('/promotions/{identifier}', [PromotionController::class, 'show'])->name('promotions.show');
 
+Route::get('/championships', [ChampionshipController::class, 'index']);
 Route::get('/championships/{identifier}', [ChampionshipController::class, 'show'])->name('championships.show');
 
 

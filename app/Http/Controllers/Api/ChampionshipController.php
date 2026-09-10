@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreChampionshipRequest;
 use App\Http\Requests\UpdateChampionshipRequest;
+use App\Http\Resources\ChampionshipListResource;
 use App\Http\Resources\ChampionshipResource;
 use App\Models\Championship;
 use App\Models\Promotion;
@@ -22,6 +23,24 @@ class ChampionshipController extends Controller
     public function __construct(ChampionshipService $service)
     {
         $this->service = $service;
+    }
+
+    /**
+     * List all championships
+     *
+     * Returns a paginated list of championships across all promotions.
+     *
+     * @group Championships
+     *
+     * @queryParam per_page int Number of results per page. Defaults to 15. Example: 20
+     */
+    public function index(): JsonResponse
+    {
+        $perPage = request()->query('per_page', 15);
+
+        $championships = $this->service->getPaginated((int) $perPage);
+
+        return $this->ok(ChampionshipListResource::collection($championships));
     }
 
     /**
