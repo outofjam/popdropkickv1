@@ -13,9 +13,9 @@ abstract class BaseResource extends JsonResource
         return $date?->toDateString();
     }
 
-    protected function formatTimestamp(DateTimeInterface $timestamp): string
+    protected function formatTimestamp(?DateTimeInterface $timestamp): ?string
     {
-        return $timestamp->toIso8601String();
+        return $timestamp?->toIso8601String();
     }
 
     protected function detailUrl(string $routeName, $identifier): string

@@ -12,20 +12,23 @@ class ChampionshipResource extends BaseResource
             ? new CurrentChampionResource($latestReign)
             : null;
 
-        return [
-            'id'   => $this->resource->id,
-            'name' => $this->resource->name,
-            'slug' => $this->resource->slug,
-            'active' => (bool) $this->resource->active,
-            'introduced_at' => $this->formatDate($this->resource->introduced_at),
-            'status'           => $currentChampion ? 'active' : 'vacant',
-            'current_champion' => $currentChampion?->toArray($request),
+        return array_merge(
+            [
+                'id'   => $this->resource->id,
+                'name' => $this->resource->name,
+                'slug' => $this->resource->slug,
+                'active' => (bool) $this->resource->active,
+                'introduced_at' => $this->formatDate($this->resource->introduced_at),
+                'status'           => $currentChampion ? 'active' : 'vacant',
+                'current_champion' => $currentChampion?->toArray($request),
 
-            // DRY: use the promotion helper
-            'promotion' => $this->formatPromotionReference($this->resource->promotion),
+                // DRY: use the promotion helper
+                'promotion' => $this->formatPromotionReference($this->resource->promotion),
 
-            // DRY: use the reigns-for-championship helper (includes alias_name + wrestler ref)
-            'title_reigns' => $this->formatTitleReignsForChampionship($this->resource->titleReigns),
-        ];
+                // DRY: use the reigns-for-championship helper (includes alias_name + wrestler ref)
+                'title_reigns' => $this->formatTitleReignsForChampionship($this->resource->titleReigns),
+            ],
+            $this->formatTimestamps()
+        );
     }
 }

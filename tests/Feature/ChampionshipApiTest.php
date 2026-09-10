@@ -86,6 +86,19 @@ class ChampionshipApiTest extends TestCase
         ]);
     }
 
+    public function test_show_and_index_include_timestamps(): void
+    {
+        $championship = Championship::factory()->create();
+
+        $this->getJson("/api/championships/{$championship->slug}")
+            ->assertStatus(200)
+            ->assertJsonStructure(['data' => ['created_at', 'updated_at']]);
+
+        $this->getJson('/api/championships')
+            ->assertStatus(200)
+            ->assertJsonStructure(['data' => ['*' => ['created_at', 'updated_at']]]);
+    }
+
     public function test_show_includes_introduced_at(): void
     {
         $championship = Championship::factory()->create([

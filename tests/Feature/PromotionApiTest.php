@@ -89,6 +89,18 @@ class PromotionApiTest extends TestCase
             ]);
     }
 
+    public function test_show_promotion_includes_timestamps(): void
+    {
+        $promotion = Promotion::factory()->create();
+
+        $response = $this->getJson('/api/promotions/'.$promotion->id);
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => ['created_at', 'updated_at'],
+            ]);
+    }
+
     public function test_show_promotion_not_found_returns_404(): void
     {
         $response = $this->getJson('/api/promotions/non-existent-slug');

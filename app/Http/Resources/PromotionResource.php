@@ -26,7 +26,8 @@ class PromotionResource extends BaseResource
                 'active_championships' => ChampionshipNestedResource::collection($activeChamps),
                 'inactive_championships' => ChampionshipNestedResource::collection($inactiveChamps),
                 'detail_url' => $this->detailUrl('promotions.show', $this->resource->slug ?? $this->resource->id),
-            ]
+            ],
+            $this->formatTimestamps()
         );
     }
 }

@@ -15,7 +15,8 @@ class ChampionshipListResource extends BaseResource
                 'current_champion' => $this->when($this->resource->currentTitleReign, function () {
                     return new CurrentChampionResource($this->resource->currentTitleReign);
                 }, ['status' => 'vacant']),
-            ]
+            ],
+            $this->formatTimestamps()
         );
     }
 }

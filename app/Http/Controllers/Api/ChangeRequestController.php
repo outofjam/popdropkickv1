@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ChangeRequestResource;
 use App\Models\ChangeRequest;
 use App\Services\ChangeRequestService;
 use App\Traits\ApiResponses;
@@ -41,7 +42,7 @@ class ChangeRequestController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate($request->per_page ?? 15);
 
-        return $this->ok($changeRequests);
+        return $this->ok(ChangeRequestResource::collection($changeRequests));
     }
 
     /**
@@ -65,7 +66,7 @@ class ChangeRequestController extends Controller
         }
 
         return $this->success(
-            $changeRequest,
+            new ChangeRequestResource($changeRequest),
             null,
             compact('diff')
         );
@@ -88,7 +89,7 @@ class ChangeRequestController extends Controller
             $result = $this->service->approve($changeRequest, $request->only('comments'));
 
             return $this->success([
-                'change_request' => $changeRequest->fresh(['user', 'reviewer']),
+                'change_request' => new ChangeRequestResource($changeRequest->fresh(['user', 'reviewer'])),
                 'created_resource' => $result
             ], 'Change request approved successfully');
 
@@ -113,7 +114,7 @@ class ChangeRequestController extends Controller
         $this->service->reject($changeRequest, $request->only('comments'));
 
         return $this->success(
-            $changeRequest->fresh(['user', 'reviewer']),
+            new ChangeRequestResource($changeRequest->fresh(['user', 'reviewer'])),
             'Change request rejected'
         );
     }
