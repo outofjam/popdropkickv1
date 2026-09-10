@@ -69,6 +69,21 @@ class Championship extends Model
         'active' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(static function (self $championship) {
+            Promotion::forgetCache($championship->promotion_id);
+
+            if ($championship->wasChanged('promotion_id') && $championship->getOriginal('promotion_id')) {
+                Promotion::forgetCache($championship->getOriginal('promotion_id'));
+            }
+        });
+
+        static::deleted(static function (self $championship) {
+            Promotion::forgetCache($championship->promotion_id);
+        });
+    }
+
     public function sluggable(): array
     {
         return [

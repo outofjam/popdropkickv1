@@ -47,6 +47,34 @@ class TitleReign extends Model
         'win_type' => WinType::class,
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(static function (self $reign) {
+            static::forgetPromotionCache($reign->championship_id);
+
+            if ($reign->wasChanged('championship_id')) {
+                static::forgetPromotionCache($reign->getOriginal('championship_id'));
+            }
+        });
+
+        static::deleted(static function (self $reign) {
+            static::forgetPromotionCache($reign->championship_id);
+        });
+    }
+
+    private static function forgetPromotionCache(?string $championshipId): void
+    {
+        if (! $championshipId) {
+            return;
+        }
+
+        $promotionId = Championship::where('id', $championshipId)->value('promotion_id');
+
+        if ($promotionId) {
+            Promotion::forgetCache($promotionId);
+        }
+    }
+
     public function championship(): BelongsTo
     {
         return $this->belongsTo(Championship::class);

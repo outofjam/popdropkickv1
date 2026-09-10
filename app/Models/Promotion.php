@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @method static Model|static create(array $attributes = [])
@@ -36,6 +37,28 @@ class Promotion extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
+
+    protected static function booted(): void
+    {
+        static::saved(static function (self $promotion) {
+            static::forgetCache($promotion->id);
+        });
+
+        static::deleted(static function (self $promotion) {
+            static::forgetCache($promotion->id);
+        });
+    }
+
+    /**
+     * Forget the cached PromotionService::findByIdOrSlugCached() payload
+     * for this promotion. Called whenever the promotion, its championships,
+     * title reigns, or wrestler roster change.
+     */
+    public static function forgetCache(string $promotionId): void
+    {
+        Cache::forget("promotion:{$promotionId}:inclInactive:0");
+        Cache::forget("promotion:{$promotionId}:inclInactive:1");
+    }
 
     public function sluggable(): array
     {

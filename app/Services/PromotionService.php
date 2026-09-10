@@ -29,20 +29,60 @@ class PromotionService
 
     public function findByIdOrSlugCached(string $identifier, bool $includeInactive = false): ?Promotion
     {
-        $cacheKey = "promotion:{$identifier}:inclInactive:".(int)$includeInactive;
+        // Resolving id/slug -> row is a single indexed lookup, so it's cheap
+        // enough to run uncached on every call (including 404s). Only the
+        // heavy relationship graph loaded below is worth caching.
+        $promotion = $this->resolvePromotion($identifier);
 
-        return Cache::remember($cacheKey, 300, function () use ($identifier, $includeInactive) {
-            return $this->findByIdOrSlug($identifier, $includeInactive);
+        if (! $promotion) {
+            return null;
+        }
+
+        $cacheKey = "promotion:{$promotion->id}:inclInactive:".(int) $includeInactive;
+
+        return Cache::remember($cacheKey, 300, function () use ($promotion, $includeInactive) {
+            return $this->loadPromotionGraph($promotion, $includeInactive);
         });
     }
 
     /**
      * Show a single promotion (optionally include inactive wrestlers).
      */
-
     public function findByIdOrSlug(string $identifier, bool $includeInactive = false): ?Promotion
     {
+        $promotion = $this->resolvePromotion($identifier);
+
+        if (! $promotion) {
+            return null;
+        }
+
+        return $this->loadPromotionGraph($promotion, $includeInactive);
+    }
+
+    /**
+     * Fast point lookup by PK *or* slug (no OR).
+     */
+    private function resolvePromotion(string $identifier): ?Promotion
+    {
+        if (Str::isUuid($identifier)) {
+            $promotion = Promotion::find($identifier);
+
+            if ($promotion) {
+                return $promotion;
+            }
+        }
+
+        return Promotion::where('slug', $identifier)->first();
+    }
+
+    /**
+     * Load the heavy relationship graph only once we have the single row.
+     */
+    private function loadPromotionGraph(Promotion $promotion, bool $includeInactive): Promotion
+    {
         $with = [
+            // For a promotion's page we show its active roster plus each
+            // active wrestler's active reigns (and how to resolve/display them).
             'activeWrestlers.names',
             'activeWrestlers.activeTitleReigns.championship',
             'activeWrestlers.activeTitleReigns.aliasAtWin:id,wrestler_id,name',
@@ -50,11 +90,14 @@ class PromotionService
             'activeWrestlers.activeTitleReigns.wrestler:id,slug',
             'activeWrestlers.activeTitleReigns.wrestler.primaryName:id,wrestler_id,name',
 
+            // Active championships need their current champion resolved.
             'activeChampionships.currentTitleReign.aliasAtWin:id,wrestler_id,name',
             'activeChampionships.currentTitleReign.aliasAtWin.wrestler:id,slug',
             'activeChampionships.currentTitleReign.wrestler:id,slug',
             'activeChampionships.currentTitleReign.wrestler.primaryName:id,wrestler_id,name',
 
+            // All championships (including inactive/retired belts) so their
+            // last-held champion can still be shown.
             'championships.currentTitleReign.aliasAtWin:id,wrestler_id,name',
             'championships.currentTitleReign.aliasAtWin.wrestler:id,slug',
             'championships.currentTitleReign.wrestler:id,slug',
@@ -65,22 +108,6 @@ class PromotionService
             $with[] = 'wrestlers.names';
         }
 
-        // 1) Fast point lookup by PK *or* slug (no OR).
-        $promotion = null;
-
-        if (Str::isUuid($identifier)) {
-            $promotion = Promotion::find($identifier);
-        }
-
-        if (! $promotion) {
-            $promotion = Promotion::where('slug', $identifier)->first();
-        }
-
-        if (! $promotion) {
-            return null;
-        }
-
-        // 2) Load the heavy graph only once we have the single row.
         $promotion->load($with);
 
         return $promotion;
