@@ -29,15 +29,10 @@ class TitleReignService
 
         $this->renumberReigns($reign->championship, $wrestler);
 
-        return $reign->load([
-            'championship:id,name,slug',
-            'aliasAtWin.wrestler:id,slug',
-            'wrestler:id,slug',
-            'wrestler.primaryName:id,wrestler_id,name',
-        ]);
+        return $reign->load($this->detailWith());
     }
 
-    public function updateReign(TitleReign $reign, array $data): void
+    public function updateReign(TitleReign $reign, array $data): TitleReign
     {
         $reign->update($data);
 
@@ -45,6 +40,22 @@ class TitleReignService
         $wrestler     = $reign->wrestler; // use relation property (already a model)
 
         $this->renumberReigns($championship, $wrestler);
+
+        return $reign->refresh()->load($this->detailWith());
+    }
+
+    /**
+     * Championship + alias/wrestler fallback chain used by the store/update responses.
+     */
+    private function detailWith(): array
+    {
+        return [
+            'championship:id,name,slug',
+            'aliasAtWin:id,name,wrestler_id',
+            'aliasAtWin.wrestler:id,slug',
+            'wrestler:id,slug',
+            'wrestler.primaryName:id,wrestler_id,name',
+        ];
     }
 
     private function renumberReigns(Championship $championship, Wrestler $wrestler): void

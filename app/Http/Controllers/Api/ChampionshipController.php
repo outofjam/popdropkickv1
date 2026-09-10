@@ -112,23 +112,7 @@ class ChampionshipController extends Controller
      */
     public function show(string $identifier): JsonResponse
     {
-        $championship = Championship::query()
-            ->where(fn ($q) => $q->whereKey($identifier)->orWhere('slug', $identifier))
-            ->with([
-                'promotion:id,name,slug',
-                // Order reigns by won_on (ascending or descending; resource uses latest via collection)
-                'titleReigns' => fn ($q) => $q
-                    ->orderBy('won_on')
-                    ->with([
-                        'championship:id,name,slug',        // required by formatTitleReigns
-                        'aliasAtWin:id,wrestler_id,name',
-                        'aliasAtWin.wrestler:id,slug',
-                        // Fallback path if old data has no alias FK:
-                        'wrestler:id,slug',
-                        'wrestler.primaryName:id,wrestler_id,name',
-                    ]),
-            ])
-            ->first();
+        $championship = $this->service->findByIdOrSlugWithDetails($identifier);
 
         if (! $championship) {
             return $this->error('Championship not found', 404);
@@ -187,28 +171,15 @@ class ChampionshipController extends Controller
      */
     public function update(UpdateChampionshipRequest $request, string $identifier): JsonResponse
     {
-        $championship = Championship::query()
-            ->where(fn ($q) => $q->whereKey($identifier)->orWhere('slug', $identifier))
-            ->first();
+        $championship = $this->service->findByIdOrSlug($identifier);
 
         if (! $championship) {
             return $this->error('Championship not found', 404);
         }
 
-        $updated = $this->service->updateChampionship($championship, $request->validated());
-
-        // Reload with the same eager-load graph used in show()
-        $updated->load([
-            'promotion:id,name,slug',
-            'titleReigns' => fn ($q) => $q
-                ->orderBy('won_on')
-                ->with([
-                    'aliasAtWin:id,wrestler_id,name',
-                    'aliasAtWin.wrestler:id,slug',
-                    'wrestler:id,slug',
-                    'wrestler.primaryName:id,wrestler_id,name',
-                ]),
-        ]);
+        $updated = $this->service->loadDetail(
+            $this->service->updateChampionship($championship, $request->validated())
+        );
 
         return $this->success(new ChampionshipResource($updated), 'Championship updated successfully');
     }

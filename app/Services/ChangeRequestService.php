@@ -63,6 +63,34 @@ class ChangeRequestService
         }
     }
 
+    /**
+     * Approve every pending change request in the given set, skipping any
+     * already reviewed and collecting per-item errors instead of failing
+     * the whole batch.
+     *
+     * @param  int[]  $changeRequestIds
+     * @return array{results: array, errors: string[]}
+     */
+    public function bulkApprove(array $changeRequestIds, array $reviewData = []): array
+    {
+        $results = [];
+        $errors = [];
+
+        foreach ($changeRequestIds as $id) {
+            try {
+                $changeRequest = ChangeRequest::findOrFail($id);
+
+                if ($changeRequest->status === 'pending') {
+                    $results[] = $this->approve($changeRequest, $reviewData);
+                }
+            } catch (Exception $e) {
+                $errors[] = "ID {$id}: ".$e->getMessage();
+            }
+        }
+
+        return compact('results', 'errors');
+    }
+
     public function reject(ChangeRequest $changeRequest, array $reviewData = []): void
     {
         $changeRequest->update([

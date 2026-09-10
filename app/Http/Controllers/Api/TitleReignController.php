@@ -26,34 +26,14 @@ class TitleReignController extends Controller
     {
         $data = $request->validated();
 
-        $reign = $this->service->storeForWrestler($data, $wrestler)
-            ->load([
-                'championship:id,name,slug',
-                'aliasAtWin:id,name,wrestler_id',
-                'aliasAtWin.wrestler:id,slug',
-                // fallback path used by accessors:
-                'wrestler:id,slug',
-                'wrestler.primaryName:id,wrestler_id,name',
-            ]);
+        $reign = $this->service->storeForWrestler($data, $wrestler);
 
         return $this->success($reign, 'Title Reign Created', null, 201);
     }
 
     public function update(UpdateTitleReignRequest $request, TitleReign $reign): JsonResponse
     {
-        $data = $request->validated();
-
-        // Pass the TitleReign model and data array to the service
-        $this->service->updateReign($reign, $data);
-
-        $reign->refresh()->load([
-            'championship:id,name,slug',
-            'aliasAtWin:id,name,wrestler_id',
-            'aliasAtWin.wrestler:id,slug',
-            // fallback path used by accessors:
-            'wrestler:id,slug',
-            'wrestler.primaryName:id,wrestler_id,name',
-        ]);
+        $reign = $this->service->updateReign($reign, $request->validated());
 
         return $this->success($reign, 'Title Reign Updated');
     }

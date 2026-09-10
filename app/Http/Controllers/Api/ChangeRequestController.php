@@ -133,20 +133,10 @@ class ChangeRequestController extends Controller
             'comments' => 'nullable|string|max:1000'
         ]);
 
-        $results = [];
-        $errors = [];
-
-        foreach ($request->change_request_ids as $id) {
-            try {
-                $changeRequest = ChangeRequest::findOrFail($id);
-                if ($changeRequest->status === 'pending') {
-                    $result = $this->service->approve($changeRequest, $request->only('comments'));
-                    $results[] = $result;
-                }
-            } catch (Exception $e) {
-                $errors[] = "ID {$id}: " . $e->getMessage();
-            }
-        }
+        ['results' => $results, 'errors' => $errors] = $this->service->bulkApprove(
+            $request->change_request_ids,
+            $request->only('comments')
+        );
 
         return $this->success([
             'approved_count' => count($results),
