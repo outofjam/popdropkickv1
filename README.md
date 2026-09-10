@@ -41,11 +41,13 @@ PopDropkick API is a RESTful API designed to manage and serve data related to pr
 
 ### Wrestlers
 
-- `GET /api/wrestlers`  
-  Retrieve a list of all wrestlers.
-
 - `GET /api/wrestlers/{id_or_slug}`  
   Retrieve detailed information about a wrestler by ID or slug.
+
+  There is intentionally no unpaginated `GET /api/wrestlers` index - the
+  wrestler roster is expected to be far larger than the promotions or
+  championships lists, so browsing wrestlers goes through a promotion
+  (`GET /api/promotions/{id_or_slug}`) rather than a global listing.
 
 ---
 
