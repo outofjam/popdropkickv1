@@ -71,6 +71,20 @@ class ChampionshipApiTest extends TestCase
         ]);
     }
 
+    public function test_show_includes_introduced_at(): void
+    {
+        $championship = Championship::factory()->create([
+            'introduced_at' => '2001-03-15',
+        ]);
+
+        $response = $this->getJson("/api/championships/{$championship->slug}");
+
+        $response->assertStatus(200)
+            ->assertJsonFragment([
+                'introduced_at' => '2001-03-15',
+            ]);
+    }
+
     public function test_can_toggle_championship_active_status_by_slug(): void
     {
         $user = User::factory()->create();
