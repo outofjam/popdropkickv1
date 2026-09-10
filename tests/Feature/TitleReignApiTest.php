@@ -94,6 +94,40 @@ class TitleReignApiTest extends TestCase
         $this->assertDatabaseMissing('title_reigns', ['id' => $titleReign->id]);
     }
 
+    public function test_wrestler_can_hold_multiple_active_title_reigns_simultaneously(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+
+        $wrestler = Wrestler::factory()->create();
+        $championshipA = Championship::factory()->create(['name' => 'Championship A']);
+        $championshipB = Championship::factory()->create(['name' => 'Championship B']);
+
+        $this->postJson("/api/wrestlers/{$wrestler->slug}/title-reigns", [
+            'championship_id' => $championshipA->id,
+            'won_on' => '2021-01-01',
+            'win_type' => 'pinfall',
+        ])->assertStatus(201);
+
+        $this->postJson("/api/wrestlers/{$wrestler->slug}/title-reigns", [
+            'championship_id' => $championshipB->id,
+            'won_on' => '2021-02-01',
+            'win_type' => 'pinfall',
+        ])->assertStatus(201);
+
+        $response = $this->getJson("/api/wrestlers/{$wrestler->slug}");
+
+        $response->assertStatus(200);
+
+        $activeTitleReigns = $response->json('data.active_title_reigns');
+
+        $this->assertCount(2, $activeTitleReigns);
+        $this->assertEqualsCanonicalizing(
+            [$championshipA->id, $championshipB->id],
+            array_column($activeTitleReigns, 'championship_id')
+        );
+    }
+
     public function test_reign_numbers_are_renumbered_on_out_of_order_creation(): void
     {
         $user = User::factory()->create();
