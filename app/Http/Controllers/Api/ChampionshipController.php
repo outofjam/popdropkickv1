@@ -140,7 +140,10 @@ class ChampionshipController extends Controller
         return $this->success(
             new ChampionshipResource($championship),
             null,
-            ['counts' => ['title_reigns' => $championship->titleReigns->count()]]
+            [
+                'counts' => ['title_reigns' => $championship->titleReigns->count()],
+                'reign_stats' => $this->service->getReignStatistics($championship),
+            ]
         );
     }
 

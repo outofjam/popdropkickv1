@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Championship;
 use App\Models\Promotion;
 use App\Models\User;
+use App\Models\Wrestler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -84,6 +85,60 @@ class ChampionshipApiTest extends TestCase
             'name' => 'New Championship Name',
             'active' => false,
         ]);
+    }
+
+    public function test_show_includes_reign_statistics(): void
+    {
+        $championship = Championship::factory()->create();
+        $frequentChamp = Wrestler::factory()->create();
+        $longestReigning = Wrestler::factory()->create();
+
+        // Two short reigns for the same wrestler -> most_reigns.
+        $championship->titleReigns()->create([
+            'wrestler_id' => $frequentChamp->id,
+            'won_on' => '2020-01-01',
+            'lost_on' => '2020-01-06', // 5 days
+            'win_type' => 'pinfall',
+            'reign_number' => 1,
+        ]);
+        $championship->titleReigns()->create([
+            'wrestler_id' => $frequentChamp->id,
+            'won_on' => '2020-02-01',
+            'lost_on' => '2020-02-04', // 3 days -> shortest_reign
+            'win_type' => 'pinfall',
+            'reign_number' => 2,
+        ]);
+
+        // One long reign for a different wrestler -> longest_reign.
+        $championship->titleReigns()->create([
+            'wrestler_id' => $longestReigning->id,
+            'won_on' => '2021-01-01',
+            'lost_on' => '2021-03-01', // 59 days
+            'win_type' => 'pinfall',
+            'reign_number' => 1,
+        ]);
+
+        $response = $this->getJson("/api/championships/{$championship->slug}");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('meta.reign_stats.longest_reign.wrestler.id', $longestReigning->id)
+            ->assertJsonPath('meta.reign_stats.longest_reign.reign_length_in_days', 59)
+            ->assertJsonPath('meta.reign_stats.shortest_reign.wrestler.id', $frequentChamp->id)
+            ->assertJsonPath('meta.reign_stats.shortest_reign.reign_length_in_days', 3)
+            ->assertJsonPath('meta.reign_stats.most_reigns.wrestler.id', $frequentChamp->id)
+            ->assertJsonPath('meta.reign_stats.most_reigns.reign_count', 2);
+    }
+
+    public function test_show_reign_statistics_are_null_with_no_reigns(): void
+    {
+        $championship = Championship::factory()->create();
+
+        $response = $this->getJson("/api/championships/{$championship->slug}");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('meta.reign_stats.longest_reign', null)
+            ->assertJsonPath('meta.reign_stats.shortest_reign', null)
+            ->assertJsonPath('meta.reign_stats.most_reigns', null);
     }
 
     public function test_show_and_index_include_timestamps(): void
