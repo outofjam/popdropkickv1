@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Models\Championship;
 use App\Models\Promotion;
 use App\Models\Wrestler;
+use App\Models\WrestlerName;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -171,5 +172,40 @@ class WrestlerApiTest extends TestCase
                     ],
                 ],
             ]);
+    }
+
+    public function test_show_includes_days_active_and_alias_count(): void
+    {
+        $this->travelTo(\Carbon\Carbon::parse('2024-01-11'));
+
+        $wrestler = Wrestler::factory()->create(['debut_date' => '2024-01-01']);
+
+        WrestlerName::factory()->primary()->create(['wrestler_id' => $wrestler->id, 'name' => 'Primary Name']);
+        WrestlerName::factory()->create(['wrestler_id' => $wrestler->id, 'name' => 'Alias One']);
+        WrestlerName::factory()->create(['wrestler_id' => $wrestler->id, 'name' => 'Alias Two']);
+
+        $response = $this->getJson("/api/wrestlers/{$wrestler->slug}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'meta' => [
+                    'counts' => [
+                        'days_active' => 10,
+                        'aliases' => 2,
+                    ],
+                ],
+            ]);
+
+        $this->assertIsInt($response->json('meta.counts.days_active'));
+    }
+
+    public function test_show_days_active_is_null_without_a_debut_date(): void
+    {
+        $wrestler = Wrestler::factory()->create(['debut_date' => null]);
+
+        $response = $this->getJson("/api/wrestlers/{$wrestler->slug}");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('meta.counts.days_active', null);
     }
 }

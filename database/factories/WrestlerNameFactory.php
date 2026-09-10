@@ -39,7 +39,7 @@ class WrestlerNameFactory extends Factory
      */
     public function primary(): static
     {
-        return $this->state(static fn (array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'is_primary' => true,
         ]);
     }
