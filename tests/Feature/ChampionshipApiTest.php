@@ -87,6 +87,42 @@ class ChampionshipApiTest extends TestCase
         ]);
     }
 
+    public function test_show_includes_distinct_title_holders_count(): void
+    {
+        $championship = Championship::factory()->create();
+        $wrestlerA = Wrestler::factory()->create();
+        $wrestlerB = Wrestler::factory()->create();
+
+        // Two reigns for the same wrestler should count as one title holder.
+        $championship->titleReigns()->create([
+            'wrestler_id' => $wrestlerA->id,
+            'won_on' => '2020-01-01',
+            'lost_on' => '2020-01-06',
+            'win_type' => 'pinfall',
+            'reign_number' => 1,
+        ]);
+        $championship->titleReigns()->create([
+            'wrestler_id' => $wrestlerA->id,
+            'won_on' => '2020-02-01',
+            'lost_on' => '2020-02-04',
+            'win_type' => 'pinfall',
+            'reign_number' => 2,
+        ]);
+        $championship->titleReigns()->create([
+            'wrestler_id' => $wrestlerB->id,
+            'won_on' => '2021-01-01',
+            'lost_on' => '2021-01-10',
+            'win_type' => 'pinfall',
+            'reign_number' => 1,
+        ]);
+
+        $response = $this->getJson("/api/championships/{$championship->slug}");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('meta.counts.title_reigns', 3)
+            ->assertJsonPath('meta.counts.title_holders', 2);
+    }
+
     public function test_show_includes_reign_statistics(): void
     {
         $championship = Championship::factory()->create();
