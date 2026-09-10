@@ -61,14 +61,14 @@ namespace App\Models{
  * @method static Builder|static query()
  * @mixin Builder
  * @property int $id
- * @property int $user_id
+ * @property string $user_id
  * @property string $action
  * @property string $model_type
- * @property int|null $model_id
+ * @property string|null $model_id
  * @property array<array-key, mixed> $data
  * @property array<array-key, mixed>|null $original_data
  * @property string $status
- * @property int|null $reviewer_id
+ * @property string|null $reviewer_id
  * @property string|null $reviewer_comments
  * @property \Illuminate\Support\Carbon|null $reviewed_at
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -205,9 +205,13 @@ namespace App\Models{
  * @property string|null $created_by
  * @property string|null $updated_by
  * @property string|null $wrestler_name_id_at_win
+ * @property-read \App\Models\WrestlerName|null $aliasAtWin
  * @property-read \App\Models\Championship $championship
  * @property-read string $reign_length_human
  * @property-read int $reign_length_in_days
+ * @property-read \App\Models\WrestlerName|null $resolved_alias_at_win
+ * @property-read string|null $resolved_display_name_at_win
+ * @property-read \App\Models\Wrestler|null $resolved_wrestler
  * @property-read \App\Models\Wrestler $wrestler
  * @method static \Database\Factories\TitleReignFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TitleReign newModelQuery()
@@ -337,6 +341,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $created_by
  * @property string|null $updated_by
+ * @property-read \App\Models\Wrestler $wrestler
  * @method static \Database\Factories\WrestlerNameFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WrestlerName newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|WrestlerName newQuery()
