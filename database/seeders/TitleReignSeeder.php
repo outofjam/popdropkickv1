@@ -16,13 +16,59 @@ class TitleReignSeeder extends Seeder
         $championship = Championship::where('slug', 'nxt-championship')->firstOrFail();
 
         $reigns = [
-            // Current Champion - Oba Femi
+            // Current Champion - Grayson Waller
+            [
+                'wrestler_slug' => 'grayson-waller',
+                'won_on' => '2026-08-30',
+                'won_at' => 'NXT Heatwave 2026',
+                'lost_on' => null,
+                'lost_at' => null,
+            ],
+
+            // Tony D'Angelo
+            [
+                'wrestler_slug' => 'tony-dangelo',
+                'won_on' => '2026-04-04',
+                'won_at' => 'NXT Stand & Deliver 2026',
+                'lost_on' => '2026-08-30',
+                'lost_at' => 'NXT Heatwave 2026',
+            ],
+
+            // Joe Hendry - won the title vacated by Oba Femi
+            [
+                'wrestler_slug' => 'joe-hendry',
+                'won_on' => '2026-02-03',
+                'won_at' => 'NXT (TV)',
+                'lost_on' => '2026-04-04',
+                'lost_at' => 'NXT Stand & Deliver 2026',
+            ],
+
+            // Oba Femi (2nd reign) - vacated after being called up to the main roster
+            [
+                'wrestler_slug' => 'oba-femi',
+                'won_on' => '2025-12-06',
+                'won_at' => 'NXT Deadline 2025',
+                'lost_on' => '2026-01-06',
+                'lost_at' => null, // Vacated
+                'vacancy_reason' => 'Voluntarily relinquished the title after successfully defending it against Leon Slater, having been called up to the WWE main roster.',
+            ],
+
+            // Ricky Saints
+            [
+                'wrestler_slug' => 'ricky-saints',
+                'won_on' => '2025-09-27',
+                'won_at' => 'NXT No Mercy 2025',
+                'lost_on' => '2025-12-06',
+                'lost_at' => 'NXT Deadline 2025',
+            ],
+
+            // Oba Femi (1st reign)
             [
                 'wrestler_slug' => 'oba-femi',
                 'won_on' => '2025-01-07',
                 'won_at' => 'NXT: New Year\'s Evil 2025',
-                'lost_on' => null,
-                'lost_at' => null,
+                'lost_on' => '2025-09-27',
+                'lost_at' => 'NXT No Mercy 2025',
             ],
 
             // Trick Williams (2nd reign)
@@ -113,6 +159,7 @@ class TitleReignSeeder extends Seeder
                 'won_at' => 'NXT TakeOver 36',
                 'lost_on' => '2021-09-12',
                 'lost_at' => null, // Relinquished due to injury/COVID
+                'vacancy_reason' => 'Relinquished due to injury/COVID-19 protocols.',
             ],
 
             // Karrion Kross (2nd reign)
@@ -140,6 +187,7 @@ class TitleReignSeeder extends Seeder
                 'won_at' => 'NXT TakeOver: XXX',
                 'lost_on' => '2020-08-26',
                 'lost_at' => null, // Relinquished due to injury
+                'vacancy_reason' => 'Relinquished due to injury.',
             ],
 
             // Keith Lee
@@ -176,6 +224,7 @@ class TitleReignSeeder extends Seeder
                 'won_at' => 'NXT (TV)',
                 'lost_on' => '2019-02-20',
                 'lost_at' => null, // Vacated due to injury
+                'vacancy_reason' => 'Vacated due to injury.',
             ],
 
             // Aleister Black
@@ -314,6 +363,20 @@ class TitleReignSeeder extends Seeder
             ],
         ];
 
+        // This list is written newest-first for readability, so reign numbers
+        // (per wrestler, per championship) have to be computed from won_on
+        // order rather than array order.
+        $indexesBySlug = [];
+        foreach ($reigns as $index => $data) {
+            $indexesBySlug[$data['wrestler_slug']][] = $index;
+        }
+        foreach ($indexesBySlug as $indexes) {
+            usort($indexes, fn ($a, $b) => $reigns[$a]['won_on'] <=> $reigns[$b]['won_on']);
+            foreach ($indexes as $position => $index) {
+                $reigns[$index]['reign_number'] = $position + 1;
+            }
+        }
+
         foreach ($reigns as $data) {
             $wrestler = Wrestler::where('slug', $data['wrestler_slug'])->first();
 
@@ -328,10 +391,11 @@ class TitleReignSeeder extends Seeder
                 'championship_id' => $championship->id,
                 'wrestler_id' => $wrestler->id,
                 'won_on' => $data['won_on'],
-                'reign_number' => 1,
+                'reign_number' => $data['reign_number'],
                 'won_at' => $data['won_at'],
                 'lost_on' => $data['lost_on'],
                 'lost_at' => $data['lost_at'],
+                'vacancy_reason' => $data['vacancy_reason'] ?? null,
                 'created_by' => null,
                 'updated_by' => null,
             ]);

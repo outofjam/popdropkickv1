@@ -283,6 +283,30 @@ class WrestlerSeeder extends Seeder
                 'country' => 'Nigeria',
                 'debut_date' => '2022-01-01',
             ],
+            [
+                'ring_name' => 'Ricky Saints',
+                'real_name' => 'Richard Starks',
+                'country' => 'United States',
+                'debut_date' => '2012-01-01',
+            ],
+            [
+                'ring_name' => 'Joe Hendry',
+                'real_name' => 'Joseph Samuel Hendry',
+                'country' => 'Scotland',
+                'debut_date' => '2013-10-12',
+            ],
+            [
+                'ring_name' => 'Tony D\'Angelo',
+                'real_name' => 'Joseph Ariola',
+                'country' => 'United States',
+                'debut_date' => '2019-11-09',
+            ],
+            [
+                'ring_name' => 'Grayson Waller',
+                'real_name' => 'Matthew Farrelly',
+                'country' => 'Australia',
+                'debut_date' => '2017-04-15',
+            ],
         ];
         foreach ($wrestlers as $data) {
             $wrestler = Wrestler::firstOrCreate(
