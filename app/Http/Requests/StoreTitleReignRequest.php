@@ -48,6 +48,7 @@ class StoreTitleReignRequest extends FormRequest
             'won_at'                  => ['nullable', 'string', 'max:255'],
             'lost_on'                 => ['nullable', 'date', 'after_or_equal:won_on'],
             'lost_at'                 => ['nullable', 'string', 'max:255'],
+            'vacancy_reason'          => ['nullable', 'string', 'max:255'],
             'win_type'                => ['required', new Enum(WinType::class)],
             // Optional: defaults to primary alias in the Service if omitted
             'wrestler_name_id_at_win' => ['nullable', 'exists:wrestler_names,id'],

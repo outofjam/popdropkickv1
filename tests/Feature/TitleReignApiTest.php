@@ -41,6 +41,56 @@ class TitleReignApiTest extends TestCase
 
     }
 
+    public function test_store_title_reign_with_vacancy_reason(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+
+        $wrestler     = Wrestler::factory()->create();
+        $championship = Championship::factory()->create();
+
+        $payload = [
+            'championship_id' => $championship->id,
+            'won_on' => '2021-01-01',
+            'won_at' => 'Event Name',
+            'lost_on' => '2021-06-01',
+            'vacancy_reason' => 'Stripped for failing a drug test',
+            'win_type' => 'vacated',
+        ];
+
+        $response = $this->postJson("/api/wrestlers/{$wrestler->slug}/title-reigns", $payload);
+
+        $response->assertStatus(201);
+
+        $this->assertDatabaseHas('title_reigns', [
+            'wrestler_id' => $wrestler->id,
+            'championship_id' => $championship->id,
+            'vacancy_reason' => 'Stripped for failing a drug test',
+        ]);
+    }
+
+    public function test_update_title_reign_sets_vacancy_reason(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user, 'sanctum');
+
+        $titleReign = TitleReign::factory()->create([
+            'lost_on' => '2021-06-01',
+            'lost_at' => null,
+        ]);
+
+        $payload = ['vacancy_reason' => 'Relinquished due to injury'];
+
+        $response = $this->patchJson("/api/title-reigns/{$titleReign->id}", $payload);
+
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('title_reigns', [
+            'id' => $titleReign->id,
+            'vacancy_reason' => 'Relinquished due to injury',
+        ]);
+    }
+
     public function test_update_title_reign(): void
     {
         $user = User::factory()->create();

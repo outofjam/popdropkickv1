@@ -165,6 +165,30 @@ class ChampionshipApiTest extends TestCase
             ->assertJsonPath('meta.reign_stats.most_reigns.reign_count', 2);
     }
 
+    public function test_show_includes_vacancy_reason_for_vacated_reigns(): void
+    {
+        $championship = Championship::factory()->create();
+        $wrestler = Wrestler::factory()->create();
+
+        $championship->titleReigns()->create([
+            'wrestler_id' => $wrestler->id,
+            'won_on' => '2020-01-01',
+            'lost_on' => '2020-06-01',
+            'lost_at' => null,
+            'vacancy_reason' => 'Stripped for a rule violation',
+            'win_type' => 'vacated',
+            'reign_number' => 1,
+        ]);
+
+        $response = $this->getJson("/api/championships/{$championship->slug}");
+
+        $response->assertStatus(200)
+            ->assertJsonFragment([
+                'lost_at' => 'vacated',
+                'vacancy_reason' => 'Stripped for a rule violation',
+            ]);
+    }
+
     public function test_show_reign_statistics_are_null_with_no_reigns(): void
     {
         $championship = Championship::factory()->create();

@@ -22,6 +22,7 @@ class TitleReignService
             'won_at'                   => $data['won_at']  ?? null,
             'lost_on'                  => $data['lost_on'] ?? null,
             'lost_at'                  => $data['lost_at'] ?? null,
+            'vacancy_reason'           => $data['vacancy_reason'] ?? null,
             'win_type'                 => $data['win_type'] ?? null,
             'reign_number'             => 1, // will be renumbered
             'wrestler_name_id_at_win'  => $data['wrestler_name_id_at_win'],

@@ -38,7 +38,8 @@ class TitleReign extends Model
         'lost_at',
         'win_type',
         'reign_number',
-        'wrestler_name_id_at_win'
+        'wrestler_name_id_at_win',
+        'vacancy_reason',
     ];
 
     protected $casts = [

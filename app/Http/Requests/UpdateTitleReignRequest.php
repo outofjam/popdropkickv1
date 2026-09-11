@@ -24,6 +24,7 @@ class UpdateTitleReignRequest extends FormRequest
             'won_at'                  => ['sometimes', 'nullable', 'string', 'max:255'],
             'lost_on'                 => ['sometimes', 'nullable', 'date', 'after_or_equal:won_on'],
             'lost_at'                 => ['sometimes', 'nullable', 'string', 'max:255'],
+            'vacancy_reason'          => ['sometimes', 'nullable', 'string', 'max:255'],
             'win_type'                => ['sometimes', new Enum(WinType::class)],
             'reign_number'            => ['sometimes', 'integer', 'min:1'],
             'wrestler_name_id_at_win' => ['sometimes', 'nullable', 'exists:wrestler_names,id'],

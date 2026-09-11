@@ -88,6 +88,7 @@ abstract class BaseResource extends JsonResource
                 'won_at' => $reign->won_at,
                 'lost_on' => $this->formatDate($reign->lost_on),
                 'lost_at' => $reign->lost_on !== null && $reign->lost_at === null ? 'vacated' : $reign->lost_at,
+                'vacancy_reason' => $reign->vacancy_reason,
                 'reign_number' => $reign->reign_number,
                 'win_type' => $reign->win_type ?? null,
                 'reign_length' => $reign->reign_length_in_days,
@@ -115,6 +116,7 @@ abstract class BaseResource extends JsonResource
                 'won_at' => $reign->won_at,
                 'lost_on' => $this->formatDate($reign->lost_on),
                 'lost_at' => $reign->lost_on !== null && $reign->lost_at === null ? 'vacated' : $reign->lost_at,
+                'vacancy_reason' => $reign->vacancy_reason,
             ];
         });
     }
