@@ -39,10 +39,10 @@ For most create/update endpoints, whether the change applies immediately or goes
   Retrieve detailed information about a specific promotion by ID or slug, including active/inactive wrestler counts.
 
 - `GET /api/promotions/{id_or_slug}/championships`
-  Retrieve all championships associated with a promotion.
+  Retrieve a paginated list of a promotion's championships (active and inactive).
 
 - `GET /api/promotions/{id_or_slug}/wrestlers`
-  Retrieve all wrestlers associated with a promotion.
+  Retrieve a paginated list of a promotion's wrestlers. Active only by default; pass `?include_inactive=true` for the full roster.
 
 - `POST /api/promotions` — **Auth required**
   Create a new promotion.

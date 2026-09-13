@@ -62,7 +62,7 @@ class PromotionService
     /**
      * Fast point lookup by PK *or* slug (no OR).
      */
-    private function resolvePromotion(string $identifier): ?Promotion
+    public function resolvePromotion(string $identifier): ?Promotion
     {
         if (Str::isUuid($identifier)) {
             $promotion = Promotion::find($identifier);
@@ -121,6 +121,33 @@ class PromotionService
         $promotion->load('activeWrestlers');
 
         return $promotion;
+    }
+
+    /**
+     * Paginated list of a promotion's championships (active and inactive).
+     */
+    public function getPaginatedChampionships(Promotion $promotion, int $perPage = 15): LengthAwarePaginator
+    {
+        return $promotion->championships()
+            ->with('promotion:id,name,slug')
+            ->paginate($perPage);
+    }
+
+    /**
+     * Paginated list of a promotion's wrestlers, active-only unless requested otherwise.
+     */
+    public function getPaginatedWrestlers(Promotion $promotion, bool $includeInactive = false, int $perPage = 15): LengthAwarePaginator
+    {
+        $relation = $includeInactive ? $promotion->wrestlers() : $promotion->activeWrestlers();
+
+        return $relation
+            ->with([
+                'names',
+                'activeTitleReigns.championship',
+                'activeTitleReigns.aliasAtWin.wrestler',
+                'activeTitleReigns.wrestler.primaryName',
+            ])
+            ->paginate($perPage);
     }
 
     public function getWrestlerCounts(Promotion $promotion): array

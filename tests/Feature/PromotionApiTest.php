@@ -222,4 +222,79 @@ class PromotionApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonPath('data.0.active_championships', []);
     }
+
+    public function test_get_promotion_championships_returns_active_and_inactive(): void
+    {
+        $promotion = Promotion::factory()->create();
+        $active = Championship::factory()->create(['promotion_id' => $promotion->id, 'active' => true]);
+        $inactive = Championship::factory()->create(['promotion_id' => $promotion->id, 'active' => false]);
+
+        $response = $this->getJson("/api/promotions/{$promotion->slug}/championships");
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['id' => $active->id, 'active' => true])
+            ->assertJsonFragment(['id' => $inactive->id, 'active' => false]);
+    }
+
+    public function test_get_promotion_championships_does_not_include_other_promotions(): void
+    {
+        $promotion = Promotion::factory()->create();
+        $other = Promotion::factory()->create();
+        $championship = Championship::factory()->create(['promotion_id' => $promotion->id]);
+        Championship::factory()->create(['promotion_id' => $other->id]);
+
+        $response = $this->getJson("/api/promotions/{$promotion->slug}/championships");
+
+        $response->assertStatus(200);
+        $ids = collect($response->json('data'))->pluck('id')->all();
+        $this->assertEquals([$championship->id], $ids);
+    }
+
+    public function test_get_promotion_championships_for_unknown_promotion_returns_404(): void
+    {
+        $response = $this->getJson('/api/promotions/does-not-exist/championships');
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Promotion not found']);
+    }
+
+    public function test_get_promotion_wrestlers_returns_only_active_by_default(): void
+    {
+        $promotion = Promotion::factory()->create();
+        $activeWrestler = Wrestler::factory()->create();
+        $inactiveWrestler = Wrestler::factory()->create();
+
+        $promotion->wrestlers()->attach([$activeWrestler->id, $inactiveWrestler->id]);
+        $promotion->activeWrestlers()->attach($activeWrestler->id);
+
+        $response = $this->getJson("/api/promotions/{$promotion->slug}/wrestlers");
+
+        $response->assertStatus(200);
+        $ids = collect($response->json('data'))->pluck('id')->all();
+        $this->assertEquals([$activeWrestler->id], $ids);
+    }
+
+    public function test_get_promotion_wrestlers_includes_inactive_when_requested(): void
+    {
+        $promotion = Promotion::factory()->create();
+        $activeWrestler = Wrestler::factory()->create();
+        $inactiveWrestler = Wrestler::factory()->create();
+
+        $promotion->wrestlers()->attach([$activeWrestler->id, $inactiveWrestler->id]);
+        $promotion->activeWrestlers()->attach($activeWrestler->id);
+
+        $response = $this->getJson("/api/promotions/{$promotion->slug}/wrestlers?include_inactive=true");
+
+        $response->assertStatus(200);
+        $ids = collect($response->json('data'))->pluck('id')->all();
+        $this->assertEqualsCanonicalizing([$activeWrestler->id, $inactiveWrestler->id], $ids);
+    }
+
+    public function test_get_promotion_wrestlers_for_unknown_promotion_returns_404(): void
+    {
+        $response = $this->getJson('/api/promotions/does-not-exist/wrestlers');
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Promotion not found']);
+    }
 }

@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePromotionRequest;
+use App\Http\Resources\ChampionshipListResource;
 use App\Http\Resources\PromotionListResource;
 use App\Http\Resources\PromotionResource;
+use App\Http\Resources\WrestlerListResource;
 use App\Services\PromotionService;
 use App\Traits\ApiResponses;
 use Illuminate\Http\JsonResponse;
@@ -127,5 +129,57 @@ class PromotionController extends Controller
         $promotion = $this->service->create($request->validated());
 
         return $this->success(new PromotionResource($promotion), null, null, 201);
+    }
+
+    /**
+     * List a promotion's championships (active and inactive).
+     *
+     * @group Promotions
+     *
+     * @urlParam identifier string required The promotion ID or slug. Example: world-wrestling-alliance
+     *
+     * @queryParam per_page int Number of results per page. Defaults to 15. Example: 20
+     */
+    public function championships(string $identifier): JsonResponse
+    {
+        $promotion = $this->service->resolvePromotion($identifier);
+
+        if (! $promotion) {
+            return $this->error('Promotion not found', 404);
+        }
+
+        $perPage = request()->query('per_page', 15);
+
+        $championships = $this->service->getPaginatedChampionships($promotion, (int) $perPage);
+
+        return $this->ok(ChampionshipListResource::collection($championships));
+    }
+
+    /**
+     * List a promotion's wrestlers.
+     *
+     * Returns active wrestlers only unless include_inactive=true is passed.
+     *
+     * @group Promotions
+     *
+     * @urlParam identifier string required The promotion ID or slug. Example: world-wrestling-alliance
+     *
+     * @queryParam include_inactive boolean Whether to include inactive wrestlers. Example: true
+     * @queryParam per_page int Number of results per page. Defaults to 15. Example: 20
+     */
+    public function wrestlers(string $identifier): JsonResponse
+    {
+        $promotion = $this->service->resolvePromotion($identifier);
+
+        if (! $promotion) {
+            return $this->error('Promotion not found', 404);
+        }
+
+        $includeInactive = request()->boolean('include_inactive');
+        $perPage = request()->query('per_page', 15);
+
+        $wrestlers = $this->service->getPaginatedWrestlers($promotion, $includeInactive, (int) $perPage);
+
+        return $this->ok(WrestlerListResource::collection($wrestlers));
     }
 }
