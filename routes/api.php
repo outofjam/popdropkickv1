@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ChampionshipController;
+use App\Http\Controllers\Api\ChangeRequestController;
 use App\Http\Controllers\Api\PromotionController;
 use App\Http\Controllers\Api\TitleReignController;
 use App\Http\Controllers\Api\WrestlerAliasController;
@@ -23,34 +24,13 @@ Route::get('/promotions/{identifier}/wrestlers', [PromotionController::class, 'w
 Route::get('/championships', [ChampionshipController::class, 'index']);
 Route::get('/championships/{identifier}', [ChampionshipController::class, 'show'])->name('championships.show');
 
-
 // Change request routes (for moderators/admins)
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/change-requests', [App\Http\Controllers\Api\ChangeRequestController::class, 'index']);
-    Route::get('/change-requests/{changeRequest}', [App\Http\Controllers\Api\ChangeRequestController::class, 'show']);
-    Route::post('/change-requests/{changeRequest}/approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'approve']);
-    Route::post('/change-requests/{changeRequest}/reject', [App\Http\Controllers\Api\ChangeRequestController::class, 'reject']);
-    Route::post('/change-requests/bulk-approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'bulkApprove']);
-});
-
-
-// Change request routes (for moderators/admins)
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/change-requests', [App\Http\Controllers\Api\ChangeRequestController::class, 'index']);
-    Route::get('/change-requests/{changeRequest}', [App\Http\Controllers\Api\ChangeRequestController::class, 'show']);
-    Route::post('/change-requests/{changeRequest}/approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'approve']);
-    Route::post('/change-requests/{changeRequest}/reject', [App\Http\Controllers\Api\ChangeRequestController::class, 'reject']);
-    Route::post('/change-requests/bulk-approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'bulkApprove']);
-});
-
-
-// Change request routes (for moderators/admins)
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/change-requests', [App\Http\Controllers\Api\ChangeRequestController::class, 'index']);
-    Route::get('/change-requests/{changeRequest}', [App\Http\Controllers\Api\ChangeRequestController::class, 'show']);
-    Route::post('/change-requests/{changeRequest}/approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'approve']);
-    Route::post('/change-requests/{changeRequest}/reject', [App\Http\Controllers\Api\ChangeRequestController::class, 'reject']);
-    Route::post('/change-requests/bulk-approve', [App\Http\Controllers\Api\ChangeRequestController::class, 'bulkApprove']);
+    Route::get('/change-requests', [ChangeRequestController::class, 'index']);
+    Route::get('/change-requests/{changeRequest}', [ChangeRequestController::class, 'show']);
+    Route::post('/change-requests/{changeRequest}/approve', [ChangeRequestController::class, 'approve']);
+    Route::post('/change-requests/{changeRequest}/reject', [ChangeRequestController::class, 'reject']);
+    Route::post('/change-requests/bulk-approve', [ChangeRequestController::class, 'bulkApprove']);
 });
 
 // Protected routes requiring authentication
@@ -74,7 +54,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Toggle championship active/inactive (simplified PATCH if needed)
     Route::patch('/championships/{championship}/toggle-active', [ChampionshipController::class, 'toggleActive'])->name('championships.toggleActive');
-
 
     // Title reigns
     Route::post('/wrestlers/{wrestler}/title-reigns', [TitleReignController::class, 'store']);
