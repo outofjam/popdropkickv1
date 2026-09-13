@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @method static Model|static create(array $attributes = [])
@@ -40,6 +41,7 @@ class TitleReign extends Model
         'reign_number',
         'wrestler_name_id_at_win',
         'vacancy_reason',
+        'team_id',
     ];
 
     protected $casts = [
@@ -55,6 +57,10 @@ class TitleReign extends Model
 
             if ($reign->wasChanged('championship_id')) {
                 static::forgetPromotionCache($reign->getOriginal('championship_id'));
+            }
+
+            if ($reign->wasRecentlyCreated || $reign->wasChanged(['wrestler_id', 'wrestler_name_id_at_win'])) {
+                $reign->syncPrimaryParticipant();
             }
         });
 
@@ -76,9 +82,47 @@ class TitleReign extends Model
         }
     }
 
+    /**
+     * Mirror wrestler_id/wrestler_name_id_at_win into the normalized
+     * title_reign_wrestlers table so it stays populated for every existing
+     * write path (services, seeders, factories) without those write paths
+     * needing to know it exists yet. This column pair is still the
+     * authoritative source until requests/services are updated to write
+     * participants directly (see #28).
+     */
+    private function syncPrimaryParticipant(): void
+    {
+        if (! $this->wrestler_id) {
+            return;
+        }
+
+        $this->titleReignWrestlers()->updateOrCreate(
+            ['title_reign_id' => $this->id],
+            [
+                'wrestler_id' => $this->wrestler_id,
+                'wrestler_name_id_at_win' => $this->wrestler_name_id_at_win,
+            ]
+        );
+    }
+
     public function championship(): BelongsTo
     {
         return $this->belongsTo(Championship::class);
+    }
+
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    /**
+     * Normalized participant rows (see #28). Currently always mirrors
+     * wrestler_id/wrestler_name_id_at_win via syncPrimaryParticipant();
+     * not yet consumed by resources/requests.
+     */
+    public function titleReignWrestlers(): HasMany
+    {
+        return $this->hasMany(TitleReignWrestler::class);
     }
 
 //    public function wrestler(): BelongsTo
