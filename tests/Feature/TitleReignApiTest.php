@@ -225,10 +225,13 @@ class TitleReignApiTest extends TestCase
         $wrestler     = Wrestler::factory()->create();
         $championship = Championship::factory()->create();
 
-        // Create reign with won_on 2021-06-01 first
+        // Create reign with won_on 2021-06-01 first, and close it - a
+        // championship can only have one *open* reign at a time (#9), so the
+        // second reign below needs the first out of the way before it opens.
         $this->postJson("/api/wrestlers/{$wrestler->slug}/title-reigns", [
             'championship_id' => $championship->id,
             'won_on' => '2021-06-01',
+            'lost_on' => '2021-07-01',
             'won_at' => 'Event 1',
             'win_type' => 'pinfall',  // <-- add the required win_type here
         ]);

@@ -6,6 +6,7 @@ use App\Enums\WinType;
 use App\Models\Championship;
 use App\Models\Wrestler;
 use App\Models\WrestlerName;
+use App\Rules\NoOpenReignForChampionship;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
@@ -47,7 +48,7 @@ class StoreTitleReignRequest extends FormRequest
             'team_id' => ['nullable', 'exists:teams,id'],
             'won_on' => ['required', 'date'],
             'won_at' => ['nullable', 'string', 'max:255'],
-            'lost_on' => ['nullable', 'date', 'after_or_equal:won_on'],
+            'lost_on' => ['nullable', 'date', 'after_or_equal:won_on', new NoOpenReignForChampionship($this->resolvedChampionship?->id)],
             'lost_at' => ['nullable', 'string', 'max:255'],
             'vacancy_reason' => ['nullable', 'string', 'max:255'],
             'win_type' => ['required', new Enum(WinType::class)],

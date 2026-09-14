@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\WinType;
 use App\Models\TitleReign;
 use App\Models\WrestlerName;
+use App\Rules\NoOpenReignForChampionship;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
@@ -118,6 +119,32 @@ class UpdateTitleReignRequest extends FormRequest
                 if (! $belongs) {
                     $v->errors()->add("participants.{$index}.wrestler_name_id_at_win", 'Alias does not belong to this wrestler.');
                 }
+            }
+        });
+
+        $validator->after(function ($v) {
+            // Only re-check if this update could actually change whether the
+            // reign ends up open, or which championship it's open against.
+            if (! $this->has('lost_on') && ! $this->has('championship_id')) {
+                return;
+            }
+
+            $routeReign = $this->route('reign');
+            $reign = $routeReign instanceof TitleReign
+                ? $routeReign
+                : TitleReign::query()->find($routeReign);
+
+            if (! $reign) {
+                return;
+            }
+
+            $championshipId = $this->input('championship_id', $reign->championship_id);
+            $resolvedLostOn = $this->has('lost_on') ? $this->input('lost_on') : $reign->lost_on?->toDateString();
+
+            $rule = new NoOpenReignForChampionship($championshipId, excludeReignId: $reign->id);
+
+            if (! $rule->passes('lost_on', $resolvedLostOn)) {
+                $v->errors()->add('lost_on', $rule->message());
             }
         });
     }
