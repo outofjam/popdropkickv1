@@ -154,51 +154,12 @@ class WrestlerController extends Controller
      */
     public function show(Wrestler $wrestler): JsonResponse
     {
-        $wrestler->load([
-            'names:id,wrestler_id,name,is_primary',
-            'promotions:id,name,slug,abbreviation',
-            'activePromotions:id,name,slug,abbreviation',
-
-            // All reigns (ordered) + participant/team graph (+ alias/fallback for old rows)
-            'titleReigns' => fn ($q) => $q->orderBy('won_on')->with([
-                'championship:id,name,slug',
-                'team:id,name',
-                'titleReignWrestlers.wrestler:id,slug',
-                'titleReignWrestlers.wrestler.primaryName:id,wrestler_id,name',
-                'titleReignWrestlers.aliasAtWin:id,wrestler_id,name',
-                'aliasAtWin.wrestler:id,slug',     // preferred path
-                'wrestler:id,slug',                // fallback for old rows
-                'wrestler.primaryName:id,wrestler_id,name',
-            ]),
-
-            // Active reigns too
-            'activeTitleReigns' => fn ($q) => $q->orderBy('won_on')->with([
-                'championship:id,name,slug',
-                'team:id,name',
-                'titleReignWrestlers.wrestler:id,slug',
-                'titleReignWrestlers.wrestler.primaryName:id,wrestler_id,name',
-                'titleReignWrestlers.aliasAtWin:id,wrestler_id,name',
-                'aliasAtWin.wrestler:id,slug',
-                'wrestler:id,slug',
-                'wrestler.primaryName:id,wrestler_id,name',
-            ]),
-        ]);
+        $wrestler = $this->service->loadDetail($wrestler);
 
         return $this->success(
             new WrestlerResource($wrestler),
             null,
-            [
-                'counts' => [
-                    'title_reigns' => $wrestler->titleReigns->count(),
-                    'active_title_reigns' => $wrestler->activeTitleReigns->count(),
-                    'promotions' => $wrestler->promotions->count(),
-                    'active_promotions' => $wrestler->activePromotions->count(),
-                    'championships_held' => $wrestler->titleReigns->pluck('championship_id')->unique()->count(),
-                    'days_as_champion' => $wrestler->titleReigns->sum('reign_length_in_days'),
-                    'days_active' => $wrestler->debut_date ? (int) $wrestler->debut_date->diffInDays(now()) : null,
-                    'aliases' => $wrestler->names->where('is_primary', false)->count(),
-                ],
-            ]
+            ['counts' => $this->service->getDetailStats($wrestler)]
         );
     }
 

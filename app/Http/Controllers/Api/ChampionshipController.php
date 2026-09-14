@@ -141,14 +141,7 @@ class ChampionshipController extends Controller
             new ChampionshipResource($championship),
             null,
             [
-                'counts' => [
-                    'title_reigns' => $championship->titleReigns->count(),
-                    'title_holders' => $championship->titleReigns
-                        ->flatMap(fn ($reign) => $reign->titleReignWrestlers->pluck('wrestler_id'))
-                        ->filter()
-                        ->unique()
-                        ->count(),
-                ],
+                'counts' => $this->service->getCounts($championship),
                 'reign_stats' => $this->service->getReignStatistics($championship),
             ]
         );

@@ -6,6 +6,7 @@ use App\Models\ChangeRequest;
 use App\Models\User;
 use App\Models\Wrestler;
 use Exception;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Throwable;
@@ -25,6 +26,21 @@ class ChangeRequestService
     }
 
     /**
+     * Paginated, filterable list for the review queue.
+     *
+     * @param  array{status?: string, model_type?: string, action?: string}  $filters
+     */
+    public function getPaginated(array $filters, int $perPage = 15): LengthAwarePaginator
+    {
+        return ChangeRequest::with(['user', 'reviewer'])
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($filters['model_type'] ?? null, fn ($q, $type) => $q->where('model_type', $type))
+            ->when($filters['action'] ?? null, fn ($q, $action) => $q->where('action', $action))
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+    }
+
+    /**
      * @throws Throwable
      */
     public function approve(ChangeRequest $changeRequest, array $reviewData = []): mixed
@@ -37,7 +53,7 @@ class ChangeRequestService
 
         try {
             // Execute the actual change
-            $result = match($changeRequest->action) {
+            $result = match ($changeRequest->action) {
                 'create' => $this->executeCreate($changeRequest),
                 'update' => $this->executeUpdate($changeRequest),
                 'delete' => $this->executeDelete($changeRequest),
@@ -48,13 +64,14 @@ class ChangeRequestService
                 'status' => 'approved',
                 'reviewer_id' => auth()->id(),
                 'reviewed_at' => now(),
-                'reviewer_comments' => $reviewData['comments'] ?? null
+                'reviewer_comments' => $reviewData['comments'] ?? null,
             ]);
 
             // Update user reputation
             $this->updateUserReputation($changeRequest->user, 'approved');
 
             DB::commit();
+
             return $result;
 
         } catch (Exception $e) {
@@ -97,7 +114,7 @@ class ChangeRequestService
             'status' => 'rejected',
             'reviewer_id' => auth()->id(),
             'reviewed_at' => now(),
-            'reviewer_comments' => $reviewData['comments'] ?? 'No reason provided'
+            'reviewer_comments' => $reviewData['comments'] ?? 'No reason provided',
         ]);
 
         $this->updateUserReputation($changeRequest->user, 'rejected');
@@ -114,7 +131,7 @@ class ChangeRequestService
                 $diff[$key] = [
                     'old' => $originalValue,
                     'new' => $value,
-                    'changed' => true
+                    'changed' => true,
                 ];
             }
         }
@@ -127,7 +144,7 @@ class ChangeRequestService
      */
     protected function executeCreate(ChangeRequest $changeRequest): mixed
     {
-        return match($changeRequest->model_type) {
+        return match ($changeRequest->model_type) {
             'wrestler' => $this->wrestlerService->create($changeRequest->data),
             // Add other model types as you implement them
             default => throw new Exception("Unsupported model type: {$changeRequest->model_type}"),
@@ -139,7 +156,7 @@ class ChangeRequestService
      */
     protected function executeUpdate(ChangeRequest $changeRequest): Wrestler
     {
-        return match($changeRequest->model_type) {
+        return match ($changeRequest->model_type) {
             'wrestler' => $this->wrestlerService->update(
                 Wrestler::findOrFail($changeRequest->model_id),
                 $changeRequest->data
@@ -154,7 +171,7 @@ class ChangeRequestService
      */
     protected function executeDelete(ChangeRequest $changeRequest): bool
     {
-        return match($changeRequest->model_type) {
+        return match ($changeRequest->model_type) {
             'wrestler' => Wrestler::findOrFail($changeRequest->model_id)->delete(),
             // Add other model types as you implement them
             default => throw new Exception("Unsupported model type: {$changeRequest->model_type}"),
@@ -163,7 +180,7 @@ class ChangeRequestService
 
     private function updateUserReputation(User $user, string $outcome): void
     {
-        $points = match($outcome) {
+        $points = match ($outcome) {
             'approved' => 5,
             'rejected' => -2,
             default => 0

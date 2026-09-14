@@ -82,6 +82,25 @@ class ChampionshipService
     }
 
     /**
+     * Reign count + distinct title-holder count, over $championship->titleReigns
+     * (must already be loaded).
+     */
+    public function getCounts(Championship $championship): array
+    {
+        $reigns = $championship->titleReigns;
+
+        return [
+            'title_reigns' => $reigns->count(),
+            'title_holders' => $reigns
+                ->flatMap(fn (TitleReign $reign) => $this->reignParticipants($reign))
+                ->pluck('wrestler.id')
+                ->filter()
+                ->unique()
+                ->count(),
+        ];
+    }
+
+    /**
      * Longest/shortest reign and the wrestler with the most reigns, over
      * $championship->titleReigns (must already be loaded).
      */

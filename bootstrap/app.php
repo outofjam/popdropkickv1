@@ -3,6 +3,7 @@
 use App\Helpers\ApiResponse;
 use App\Models\Championship;
 use App\Models\Wrestler;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,9 +13,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        api: __DIR__ . '/../routes/api.php',
-        commands: __DIR__ . '/../routes/console.php',
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(static function (Middleware $middleware): void {
@@ -38,10 +39,19 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($modelClass === Championship::class) {
                     return ApiResponse::error('Championship not found', 404);
                 }
+
                 return ApiResponse::error('Resource not found', 404);
             }
 
             // For non-JSON requests, let Laravel handle default behavior
+            return null;
+        });
+
+        $exceptions->render(function (AuthorizationException $e, $request) {
+            if ($request->expectsJson()) {
+                return ApiResponse::error($e->getMessage() ?: 'This action is unauthorized.', 403);
+            }
+
             return null;
         });
     })

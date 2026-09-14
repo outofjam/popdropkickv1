@@ -6,8 +6,8 @@ use App\Models\Promotion;
 use App\Models\Wrestler;
 use App\Models\WrestlerName;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class WrestlerService
 {
@@ -48,6 +48,59 @@ class WrestlerService
     }
 
     /**
+     * Eager-load the full relationship graph used by the show response:
+     * aliases, promotions, and every reign (with its participant/team graph).
+     */
+    public function loadDetail(Wrestler $wrestler): Wrestler
+    {
+        return $wrestler->load([
+            'names:id,wrestler_id,name,is_primary',
+            'promotions:id,name,slug,abbreviation',
+            'activePromotions:id,name,slug,abbreviation',
+
+            'titleReigns' => fn ($q) => $q->orderBy('won_on')->with([
+                'championship:id,name,slug',
+                'team:id,name',
+                'titleReignWrestlers.wrestler:id,slug',
+                'titleReignWrestlers.wrestler.primaryName:id,wrestler_id,name',
+                'titleReignWrestlers.aliasAtWin:id,wrestler_id,name',
+                'aliasAtWin.wrestler:id,slug',
+                'wrestler:id,slug',
+                'wrestler.primaryName:id,wrestler_id,name',
+            ]),
+
+            'activeTitleReigns' => fn ($q) => $q->orderBy('won_on')->with([
+                'championship:id,name,slug',
+                'team:id,name',
+                'titleReignWrestlers.wrestler:id,slug',
+                'titleReignWrestlers.wrestler.primaryName:id,wrestler_id,name',
+                'titleReignWrestlers.aliasAtWin:id,wrestler_id,name',
+                'aliasAtWin.wrestler:id,slug',
+                'wrestler:id,slug',
+                'wrestler.primaryName:id,wrestler_id,name',
+            ]),
+        ]);
+    }
+
+    /**
+     * Career stat counts used by the show response's meta.counts, over a
+     * wrestler already loaded via loadDetail().
+     */
+    public function getDetailStats(Wrestler $wrestler): array
+    {
+        return [
+            'title_reigns' => $wrestler->titleReigns->count(),
+            'active_title_reigns' => $wrestler->activeTitleReigns->count(),
+            'promotions' => $wrestler->promotions->count(),
+            'active_promotions' => $wrestler->activePromotions->count(),
+            'championships_held' => $wrestler->titleReigns->pluck('championship_id')->unique()->count(),
+            'days_as_champion' => $wrestler->titleReigns->sum('reign_length_in_days'),
+            'days_active' => $wrestler->debut_date ? (int) $wrestler->debut_date->diffInDays(now()) : null,
+            'aliases' => $wrestler->names->where('is_primary', false)->count(),
+        ];
+    }
+
+    /**
      * Create a new wrestler with related aliases and promotions.
      */
     public function create(array $data): Wrestler
@@ -85,7 +138,7 @@ class WrestlerService
 
         $wrestlerData = $this->extractWrestlerData($data);
 
-        if (!empty($wrestlerData)) {
+        if (! empty($wrestlerData)) {
             $wrestler->update($wrestlerData);
         }
 
@@ -99,7 +152,6 @@ class WrestlerService
 
         $this->syncPromotionRelations($wrestler, 'promotions', $promotionIds);
         $this->syncPromotionRelations($wrestler, 'activePromotions', $activePromotionIds);
-
 
         // title reigns use a dedicated API after the wrestler is created, so we don't need to sync them here'
         //        if (is_array($titleReigns)) {
@@ -115,7 +167,7 @@ class WrestlerService
      */
     private function syncPromotionRelations(Wrestler $wrestler, string $relationName, ?array $identifiers): void
     {
-        if (!is_array($identifiers)) {
+        if (! is_array($identifiers)) {
             return;
         }
 
@@ -125,13 +177,13 @@ class WrestlerService
         $strings = [];
 
         foreach ($identifiers as $idOrString) {
-            $idOrString = (string)$idOrString;
+            $idOrString = (string) $idOrString;
             if (preg_match($uuidPattern, $idOrString)) {
                 // It's a UUID string, treat as ID
                 $ids[] = $idOrString;
             } elseif (ctype_digit($idOrString)) {
                 // Numeric string, convert to int
-                $ids[] = (int)$idOrString;
+                $ids[] = (int) $idOrString;
             } else {
                 // Otherwise treat as string to match name/slug/abbr
                 $strings[] = $idOrString;
@@ -139,7 +191,7 @@ class WrestlerService
         }
 
         // Find IDs matching the string identifiers by name, slug, or abbreviation
-        if (!empty($strings)) {
+        if (! empty($strings)) {
             $matchedIds = Promotion::where(static function ($query) use ($strings) {
                 $query->whereIn('name', $strings)
                     ->orWhereIn('slug', $strings)
@@ -172,9 +224,9 @@ class WrestlerService
             return;
         }
 
-        $aliases = array_map(static fn($alias) => array_merge(['is_primary' => false], $alias), $aliases);
+        $aliases = array_map(static fn ($alias) => array_merge(['is_primary' => false], $alias), $aliases);
 
-        if (!collect($aliases)->contains('is_primary', true)) {
+        if (! collect($aliases)->contains('is_primary', true)) {
             $aliases[0]['is_primary'] = true;
         }
 
@@ -230,10 +282,9 @@ class WrestlerService
         })->all();
     }
 
-
     public function addAlias(Wrestler $wrestler, array $data): WrestlerName
     {
-        $data['is_primary'] = (bool)($data['is_primary'] ?? false);
+        $data['is_primary'] = (bool) ($data['is_primary'] ?? false);
 
         // If making it primary, unmark others
         if ($data['is_primary']) {
@@ -254,7 +305,7 @@ class WrestlerService
     {
         $alias = $wrestler->names()->where('id', $aliasId)->first();
 
-        if (!$alias) {
+        if (! $alias) {
             return false;
         }
 
@@ -312,7 +363,7 @@ class WrestlerService
     {
         $toAttach = array_diff($promotionIds, $removeIds);
 
-        if (!empty($toAttach)) {
+        if (! empty($toAttach)) {
             $wrestler->promotions()->syncWithoutDetaching($toAttach);
         }
     }
@@ -331,7 +382,7 @@ class WrestlerService
 
         // Make sure they're in `promotions` before activating
         $missingInInactive = array_diff($toAttach, $currentPromotionIds);
-        if (!empty($missingInInactive)) {
+        if (! empty($missingInInactive)) {
             $wrestler->promotions()->syncWithoutDetaching($missingInInactive);
         }
 
