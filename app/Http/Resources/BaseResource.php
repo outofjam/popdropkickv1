@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\TitleReign;
 use DateTimeInterface;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
@@ -56,7 +57,7 @@ abstract class BaseResource extends JsonResource
     // NEW: Collection filtering helper
     protected function filterInactiveItems(Collection $allItems, Collection $activeItems): Collection
     {
-        return $allItems->reject(fn($item) => $activeItems->contains('id', $item->id));
+        return $allItems->reject(fn ($item) => $activeItems->contains('id', $item->id));
     }
 
     // NEW: Common metadata formatters
@@ -80,7 +81,6 @@ abstract class BaseResource extends JsonResource
     protected function formatTitleReigns($reigns)
     {
         return $reigns->map(function ($reign) {
-            $wrestler = $reign->resolved_wrestler;                 // may be null if truly missing
             return [
                 'championship_id' => $reign->championship->id,
                 'championship_name' => $reign->championship->name,
@@ -89,27 +89,23 @@ abstract class BaseResource extends JsonResource
                 'lost_on' => $this->formatDate($reign->lost_on),
                 'lost_at' => $reign->lost_on !== null && $reign->lost_at === null ? 'vacated' : $reign->lost_at,
                 'vacancy_reason' => $reign->vacancy_reason,
-                'reign_number' => $reign->reign_number,
                 'win_type' => $reign->win_type ?? null,
                 'reign_length' => $reign->reign_length_in_days,
                 'reign_length_human' => $reign->reign_length_human,
 
-                // new fields
-                'wrestler' => $wrestler ? $this->formatWrestlerReference($wrestler) : null,
-                'alias_name' => $reign->resolved_display_name_at_win, // alias at win, or primary
+                'team' => $this->formatTeamReference($reign->team),
+                'wrestlers' => $this->formatParticipants($reign),
             ];
         });
     }
 
-
     protected function formatTitleReignsForChampionship($reigns)
     {
         return $reigns->map(function ($reign) {
-            $wrestler = $reign->resolved_wrestler;
             return [
                 'id' => $reign->id,
-                'wrestler' => $wrestler ? $this->formatWrestlerReference($wrestler) : null,
-                'alias_name' => $reign->resolved_display_name_at_win, // alias at win, or primary
+                'team' => $this->formatTeamReference($reign->team),
+                'wrestlers' => $this->formatParticipants($reign),
                 'reign_length' => $reign->reign_length_in_days,
                 'reign_length_human' => $reign->reign_length_human,
                 'won_on' => $this->formatDate($reign->won_on),
@@ -119,5 +115,70 @@ abstract class BaseResource extends JsonResource
                 'vacancy_reason' => $reign->vacancy_reason,
             ];
         });
+    }
+
+    protected function formatTeamReference($team): ?array
+    {
+        return $team ? ['id' => $team->id, 'name' => $team->name] : null;
+    }
+
+    /**
+     * Every wrestler holding $reign, each with their own alias-at-win and
+     * their own reign_number for this championship. Falls back to the
+     * legacy singular wrestler_id/wrestler_name_id_at_win columns for any
+     * reign whose participant rows haven't been synced/loaded.
+     */
+    protected function formatParticipants(TitleReign $reign): array
+    {
+        $participants = $reign->relationLoaded('titleReignWrestlers')
+            ? $reign->titleReignWrestlers
+            : $reign->titleReignWrestlers()->get();
+
+        if ($participants->isEmpty()) {
+            $wrestler = $reign->resolved_wrestler;
+
+            if (! $wrestler) {
+                return [];
+            }
+
+            return [[
+                'wrestler' => $this->formatWrestlerReference($wrestler),
+                'alias_name' => $reign->resolved_display_name_at_win,
+                'reign_number' => $reign->reign_number,
+            ]];
+        }
+
+        return $participants
+            ->filter(fn ($participant) => $participant->wrestler !== null)
+            ->map(fn ($participant) => [
+                'wrestler' => $this->formatWrestlerReference($participant->wrestler),
+                'alias_name' => $participant->resolved_display_name,
+                'reign_number' => $participant->reign_number,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * The champions currently holding $reign (or [] if there is no open
+     * reign / it truly has no resolvable champion), shaped for
+     * "current_champions"-style API fields.
+     */
+    protected function formatCurrentChampions(?TitleReign $reign): array
+    {
+        if (! $reign) {
+            return [];
+        }
+
+        return array_map(function (array $participant) use ($reign) {
+            return array_merge($participant['wrestler'], [
+                'alias_name' => $participant['alias_name'],
+                'team' => $this->formatTeamReference($reign->team),
+                'reign_start' => $this->formatDate($reign->won_on),
+                'reign_number' => $participant['reign_number'],
+                'reign_length' => $reign->reign_length_in_days,
+                'reign_length_human' => $reign->reign_length_human,
+            ]);
+        }, $this->formatParticipants($reign));
     }
 }

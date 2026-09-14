@@ -144,7 +144,7 @@ class ChampionshipController extends Controller
                 'counts' => [
                     'title_reigns' => $championship->titleReigns->count(),
                     'title_holders' => $championship->titleReigns
-                        ->map(fn ($reign) => $reign->resolved_wrestler?->id)
+                        ->flatMap(fn ($reign) => $reign->titleReignWrestlers->pluck('wrestler_id'))
                         ->filter()
                         ->unique()
                         ->count(),
@@ -232,5 +232,4 @@ class ChampionshipController extends Controller
 
         return $this->success($updatedChampionship, 'Championship active status toggled');
     }
-
 }

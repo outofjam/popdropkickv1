@@ -8,19 +8,18 @@ class ChampionshipResource extends BaseResource
     {
         $latestReign = $this->resource->titleReigns->sortByDesc('won_on')->first();
 
-        $currentChampion = ($latestReign && $latestReign->lost_on === null)
-            ? new CurrentChampionResource($latestReign)
-            : null;
+        $currentReign = ($latestReign && $latestReign->lost_on === null) ? $latestReign : null;
+        $currentChampions = $this->formatCurrentChampions($currentReign);
 
         return array_merge(
             [
-                'id'   => $this->resource->id,
+                'id' => $this->resource->id,
                 'name' => $this->resource->name,
                 'slug' => $this->resource->slug,
                 'active' => (bool) $this->resource->active,
                 'introduced_at' => $this->formatDate($this->resource->introduced_at),
-                'status'           => $currentChampion ? 'active' : 'vacant',
-                'current_champion' => $currentChampion?->toArray($request),
+                'status' => $currentChampions !== [] ? 'active' : 'vacant',
+                'current_champions' => $currentChampions,
 
                 // DRY: use the promotion helper
                 'promotion' => $this->formatPromotionReference($this->resource->promotion),

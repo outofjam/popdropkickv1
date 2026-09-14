@@ -83,12 +83,11 @@ class TitleReign extends Model
     }
 
     /**
-     * Mirror wrestler_id/wrestler_name_id_at_win into the normalized
-     * title_reign_wrestlers table so it stays populated for every existing
-     * write path (services, seeders, factories) without those write paths
-     * needing to know it exists yet. This column pair is still the
-     * authoritative source until requests/services are updated to write
-     * participants directly (see #28).
+     * Mirror wrestler_id/wrestler_name_id_at_win into this reign's primary
+     * title_reign_wrestlers row, so it stays populated for every write path
+     * (services, seeders, factories) without those write paths needing to
+     * know about it. Matches on is_primary so it never touches a
+     * co-champion row added directly via TitleReignService.
      */
     private function syncPrimaryParticipant(): void
     {
@@ -97,10 +96,11 @@ class TitleReign extends Model
         }
 
         $this->titleReignWrestlers()->updateOrCreate(
-            ['title_reign_id' => $this->id],
+            ['title_reign_id' => $this->id, 'is_primary' => true],
             [
                 'wrestler_id' => $this->wrestler_id,
                 'wrestler_name_id_at_win' => $this->wrestler_name_id_at_win,
+                'reign_number' => $this->reign_number,
             ]
         );
     }
@@ -125,10 +125,10 @@ class TitleReign extends Model
         return $this->hasMany(TitleReignWrestler::class);
     }
 
-//    public function wrestler(): BelongsTo
-//    {
-//        return $this->belongsTo(Wrestler::class);
-//    }
+    //    public function wrestler(): BelongsTo
+    //    {
+    //        return $this->belongsTo(Wrestler::class);
+    //    }
 
     // In TitleReign model
     public function getReignLengthInDaysAttribute(): int
@@ -169,7 +169,6 @@ class TitleReign extends Model
 
     // app/Models/TitleReign.php
 
-
     /**
      * The wrestler we should display for this reign.
      * 1) aliasAtWin->wrestler (preferred)
@@ -178,7 +177,7 @@ class TitleReign extends Model
      */
     public function getResolvedWrestlerAttribute(): ?Wrestler
     {
-        if ( $this->aliasAtWin && $this->relationLoaded('aliasAtWin')) {
+        if ($this->aliasAtWin && $this->relationLoaded('aliasAtWin')) {
             return $this->aliasAtWin->wrestler ?? null;
         }
         if ($this->aliasAtWin) {
@@ -188,6 +187,7 @@ class TitleReign extends Model
         if ($this->relationLoaded('wrestler')) {
             return $this->wrestler;
         }
+
         return $this->wrestler()->first();
     }
 
@@ -205,6 +205,7 @@ class TitleReign extends Model
         if ($w) {
             return $w->primaryName()->first();
         }
+
         return null;
     }
 
@@ -215,7 +216,4 @@ class TitleReign extends Model
     {
         return $this->resolved_alias_at_win?->name;
     }
-
-
-
 }

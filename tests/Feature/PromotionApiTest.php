@@ -152,7 +152,7 @@ class PromotionApiTest extends TestCase
         ]);
     }
 
-    public function test_promotion_index_includes_active_championships_and_current_champion(): void
+    public function test_promotion_index_includes_active_championships_and_current_champions(): void
     {
         $promotion    = Promotion::factory()->create();
         $championship = Championship::factory()->create([
@@ -177,10 +177,10 @@ class PromotionApiTest extends TestCase
             'name' => $championship->name,
         ]);
 
-        $response->assertJsonPath('data.0.active_championships.0.current_champion.id', $wrestler->id);
+        $response->assertJsonPath('data.0.active_championships.0.current_champions.0.id', $wrestler->id);
     }
 
-    public function test_active_championship_with_no_current_reign_returns_vacant_status(): void
+    public function test_active_championship_with_no_current_reign_returns_empty_current_champions(): void
     {
         $promotion = Promotion::factory()->create();
 
@@ -206,7 +206,7 @@ class PromotionApiTest extends TestCase
 
         $response->assertStatus(200);
 
-        $response->assertJsonPath('data.0.active_championships.0.current_champion.status', 'vacant');
+        $response->assertJsonPath('data.0.active_championships.0.current_champions', []);
     }
 
     public function test_promotion_index_with_no_active_championships_returns_empty_array(): void

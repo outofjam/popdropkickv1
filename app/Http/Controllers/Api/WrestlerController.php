@@ -19,6 +19,7 @@ class WrestlerController extends Controller
     use ApiResponses;
 
     protected WrestlerService $service;
+
     protected ChangeRequestService $changeRequestService;
 
     public function __construct(WrestlerService $service, ChangeRequestService $changeRequestService)
@@ -158,17 +159,25 @@ class WrestlerController extends Controller
             'promotions:id,name,slug,abbreviation',
             'activePromotions:id,name,slug,abbreviation',
 
-            // All reigns (ordered) + alias/fallback graph
-            'titleReigns' => fn($q) => $q->orderBy('won_on')->with([
+            // All reigns (ordered) + participant/team graph (+ alias/fallback for old rows)
+            'titleReigns' => fn ($q) => $q->orderBy('won_on')->with([
                 'championship:id,name,slug',
+                'team:id,name',
+                'titleReignWrestlers.wrestler:id,slug',
+                'titleReignWrestlers.wrestler.primaryName:id,wrestler_id,name',
+                'titleReignWrestlers.aliasAtWin:id,wrestler_id,name',
                 'aliasAtWin.wrestler:id,slug',     // preferred path
                 'wrestler:id,slug',                // fallback for old rows
                 'wrestler.primaryName:id,wrestler_id,name',
             ]),
 
             // Active reigns too
-            'activeTitleReigns' => fn($q) => $q->orderBy('won_on')->with([
+            'activeTitleReigns' => fn ($q) => $q->orderBy('won_on')->with([
                 'championship:id,name,slug',
+                'team:id,name',
+                'titleReignWrestlers.wrestler:id,slug',
+                'titleReignWrestlers.wrestler.primaryName:id,wrestler_id,name',
+                'titleReignWrestlers.aliasAtWin:id,wrestler_id,name',
                 'aliasAtWin.wrestler:id,slug',
                 'wrestler:id,slug',
                 'wrestler.primaryName:id,wrestler_id,name',
@@ -192,7 +201,6 @@ class WrestlerController extends Controller
             ]
         );
     }
-
 
     /**
      * Create a new wrestler
@@ -230,6 +238,7 @@ class WrestlerController extends Controller
         // Check if user has auto-approval privileges
         if (auth()->user()->canAutoApprove('wrestler_create')) {
             $wrestler = $this->service->create($data);
+
             return $this->success(
                 new WrestlerResource($wrestler),
                 'Wrestler created successfully',
@@ -244,7 +253,7 @@ class WrestlerController extends Controller
             'action' => 'create',
             'model_type' => 'wrestler',
             'data' => $data,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         return $this->success(
@@ -293,6 +302,7 @@ class WrestlerController extends Controller
         // Check for auto-approval
         if (auth()->user()->canAutoApprove('wrestler_update')) {
             $updatedWrestler = $this->service->update($wrestler, $data);
+
             return $this->success(
                 new WrestlerResource($updatedWrestler),
                 'Wrestler updated successfully'
@@ -307,7 +317,7 @@ class WrestlerController extends Controller
             'model_id' => $wrestler->id,
             'data' => $data,
             'original_data' => $wrestler->toArray(),
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         return $this->success(

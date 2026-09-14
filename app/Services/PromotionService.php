@@ -16,16 +16,18 @@ class PromotionService
     {
         return Promotion::withCount(['wrestlers', 'activeWrestlers'])
             ->with([
-                // For listing cards we usually show active champs + current champion
+                // For listing cards we usually show active champs + current champions
+                'activeChampionships.currentTitleReign.team:id,name',
+                'activeChampionships.currentTitleReign.titleReignWrestlers.wrestler:id,slug',
+                'activeChampionships.currentTitleReign.titleReignWrestlers.aliasAtWin:id,wrestler_id,name',
+                // Fallbacks if older rows still have wrestler_id populated
                 'activeChampionships.currentTitleReign.aliasAtWin:id,wrestler_id,name',
                 'activeChampionships.currentTitleReign.aliasAtWin.wrestler:id,slug',
-                // Fallbacks if older rows still have wrestler_id populated
                 'activeChampionships.currentTitleReign.wrestler:id,slug',
                 'activeChampionships.currentTitleReign.wrestler.primaryName:id,wrestler_id,name',
             ])
             ->paginate($perPage);
     }
-
 
     public function findByIdOrSlugCached(string $identifier, bool $includeInactive = false): ?Promotion
     {
@@ -85,19 +87,28 @@ class PromotionService
             // active wrestler's active reigns (and how to resolve/display them).
             'activeWrestlers.names',
             'activeWrestlers.activeTitleReigns.championship',
+            'activeWrestlers.activeTitleReigns.team:id,name',
+            'activeWrestlers.activeTitleReigns.titleReignWrestlers.wrestler:id,slug',
+            'activeWrestlers.activeTitleReigns.titleReignWrestlers.aliasAtWin:id,wrestler_id,name',
             'activeWrestlers.activeTitleReigns.aliasAtWin:id,wrestler_id,name',
             'activeWrestlers.activeTitleReigns.aliasAtWin.wrestler:id,slug',
             'activeWrestlers.activeTitleReigns.wrestler:id,slug',
             'activeWrestlers.activeTitleReigns.wrestler.primaryName:id,wrestler_id,name',
 
-            // Active championships need their current champion resolved.
+            // Active championships need their current champions resolved.
+            'activeChampionships.currentTitleReign.team:id,name',
+            'activeChampionships.currentTitleReign.titleReignWrestlers.wrestler:id,slug',
+            'activeChampionships.currentTitleReign.titleReignWrestlers.aliasAtWin:id,wrestler_id,name',
             'activeChampionships.currentTitleReign.aliasAtWin:id,wrestler_id,name',
             'activeChampionships.currentTitleReign.aliasAtWin.wrestler:id,slug',
             'activeChampionships.currentTitleReign.wrestler:id,slug',
             'activeChampionships.currentTitleReign.wrestler.primaryName:id,wrestler_id,name',
 
             // All championships (including inactive/retired belts) so their
-            // last-held champion can still be shown.
+            // last-held champions can still be shown.
+            'championships.currentTitleReign.team:id,name',
+            'championships.currentTitleReign.titleReignWrestlers.wrestler:id,slug',
+            'championships.currentTitleReign.titleReignWrestlers.aliasAtWin:id,wrestler_id,name',
             'championships.currentTitleReign.aliasAtWin:id,wrestler_id,name',
             'championships.currentTitleReign.aliasAtWin.wrestler:id,slug',
             'championships.currentTitleReign.wrestler:id,slug',
@@ -144,6 +155,9 @@ class PromotionService
             ->with([
                 'names',
                 'activeTitleReigns.championship',
+                'activeTitleReigns.team',
+                'activeTitleReigns.titleReignWrestlers.wrestler',
+                'activeTitleReigns.titleReignWrestlers.aliasAtWin',
                 'activeTitleReigns.aliasAtWin.wrestler',
                 'activeTitleReigns.wrestler.primaryName',
             ])
@@ -153,10 +167,10 @@ class PromotionService
     public function getWrestlerCounts(Promotion $promotion): array
     {
         $active = $promotion->relationLoaded('activeWrestlers') ? $promotion->activeWrestlers : null;
-        $all    = $promotion->relationLoaded('wrestlers')       ? $promotion->wrestlers       : null;
+        $all = $promotion->relationLoaded('wrestlers') ? $promotion->wrestlers : null;
 
-        $activeCount   = $active ? $active->count() : $promotion->activeWrestlers()->count();
-        $totalCount    = $all    ? $all->count()    : $promotion->wrestlers()->count();
+        $activeCount = $active ? $active->count() : $promotion->activeWrestlers()->count();
+        $totalCount = $all ? $all->count() : $promotion->wrestlers()->count();
         $inactiveCount = $totalCount - $activeCount;
 
         return ['active' => $activeCount, 'inactive' => $inactiveCount];

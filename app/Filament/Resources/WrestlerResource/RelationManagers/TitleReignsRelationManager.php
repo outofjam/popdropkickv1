@@ -3,18 +3,17 @@
 namespace App\Filament\Resources\WrestlerResource\RelationManagers;
 
 use App\Models\Wrestler;
-use Filament\Forms\Components\DatePicker;
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Actions\CreateAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -42,6 +41,11 @@ class TitleReignsRelationManager extends RelationManager
                     ->relationship('championship', 'name')
                     ->searchable()
                     ->required(),
+                Select::make('team_id')
+                    ->label('Team (optional)')
+                    ->relationship('team', 'name')
+                    ->searchable()
+                    ->helperText('Set this if the reign is held jointly with a tag team, trios, or stable.'),
                 DatePicker::make('won_on'),
                 DatePicker::make('lost_on'),
                 TextInput::make('won_at'),
@@ -69,10 +73,11 @@ class TitleReignsRelationManager extends RelationManager
         return $table
             ->modifyQueryUsing(function (Builder $q) {
                 $q->with('championship:id,name,slug')
+                    ->with('team:id,name')
                     ->with([
                         'aliasAtWin' => static function ($aq) {
                             $aq->select('id', 'name', 'wrestler_id')
-                                ->with(['wrestler' => static fn($wq) => $wq->select('id', 'slug')]);
+                                ->with(['wrestler' => static fn ($wq) => $wq->select('id', 'slug')]);
                         },
                         // eager-load fallback path used by the accessor to avoid N+1:
                         'wrestler:id,slug',
@@ -85,6 +90,7 @@ class TitleReignsRelationManager extends RelationManager
                 TextColumn::make('resolved_display_name_at_win')
                     ->label('Alias at win')
                     ->badge(),
+                TextColumn::make('team.name')->label('Team')->placeholder('—'),
                 TextColumn::make('reign_number')->label('Reign number'),
                 TextColumn::make('won_on')->dateTime('Y-m-d H:i:s')->label('Won on'),
             ])
@@ -92,5 +98,4 @@ class TitleReignsRelationManager extends RelationManager
             ->recordActions([EditAction::make(), DeleteAction::make()])
             ->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make()])]);
     }
-
 }

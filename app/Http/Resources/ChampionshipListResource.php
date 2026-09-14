@@ -12,9 +12,7 @@ class ChampionshipListResource extends BaseResource
                 'active' => (bool) $this->resource->active,
                 'introduced_at' => $this->formatDate($this->resource->introduced_at),
                 'promotion' => $this->formatPromotionReference($this->resource->promotion),
-                'current_champion' => $this->when($this->resource->currentTitleReign, function () {
-                    return new CurrentChampionResource($this->resource->currentTitleReign);
-                }, ['status' => 'vacant']),
+                'current_champions' => $this->formatCurrentChampions($this->resource->currentTitleReign),
             ],
             $this->formatTimestamps()
         );

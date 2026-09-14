@@ -12,9 +12,7 @@ class ChampionshipNestedResource extends BaseResource
             $this->formatChampionshipReference($this->resource),
             [
                 'introduced_at' => $this->formatDate($this->resource->introduced_at),
-                'current_champion' => $this->when($this->resource->currentTitleReign, function () {
-                    return new CurrentChampionResource($this->resource->currentTitleReign);
-                }, ['status' => 'vacant']),
+                'current_champions' => $this->formatCurrentChampions($this->resource->currentTitleReign),
             ]
         );
     }

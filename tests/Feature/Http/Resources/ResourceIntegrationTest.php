@@ -59,7 +59,11 @@ class ResourceIntegrationTest extends TestCase
         // Load the primary name relationship
         $wrestler->load('primaryName');
 
-        $championship->load(['promotion', 'titleReigns.wrestler.primaryName']);
+        $championship->load([
+            'promotion',
+            'titleReigns.titleReignWrestlers.wrestler.primaryName',
+            'currentTitleReign.titleReignWrestlers.wrestler.primaryName',
+        ]);
 
         // Act
         $resource = new ChampionshipResource($championship);
@@ -78,11 +82,11 @@ class ResourceIntegrationTest extends TestCase
         $this->assertEquals($promotion->slug, $result['promotion']['slug']);
         $this->assertStringContainsString('promotions', $result['promotion']['detail_url']);
 
-        // Check current champion (should use CurrentChampionResource)
-        $this->assertArrayHasKey('current_champion', $result);
-        $this->assertNotNull($result['current_champion'], 'Current champion should not be null');
-        $this->assertEquals($wrestler->id, $result['current_champion']['id']);
-        $this->assertEquals($wrestler->name, $result['current_champion']['name']); // Uses name attribute
+        // Check current champions (should use formatCurrentChampions helper, always a list)
+        $this->assertArrayHasKey('current_champions', $result);
+        $this->assertCount(1, $result['current_champions']);
+        $this->assertEquals($wrestler->id, $result['current_champions'][0]['id']);
+        $this->assertEquals($wrestler->name, $result['current_champions'][0]['name']); // Uses name attribute
 
         // Check title reigns (should use formatTitleReignsForChampionship helper)
         $this->assertArrayHasKey('title_reigns', $result);
@@ -90,10 +94,11 @@ class ResourceIntegrationTest extends TestCase
 
         $reignData = $result['title_reigns'][0];
         $this->assertEquals($titleReign->id, $reignData['id']);
-        $this->assertArrayHasKey('wrestler', $reignData);
-        $this->assertEquals($wrestler->id, $reignData['wrestler']['id']);
-        $this->assertEquals($wrestler->name, $reignData['wrestler']['name']); // Uses name attribute
-        $this->assertStringContainsString('wrestlers', $reignData['wrestler']['detail_url']);
+        $this->assertArrayHasKey('wrestlers', $reignData);
+        $this->assertCount(1, $reignData['wrestlers']);
+        $this->assertEquals($wrestler->id, $reignData['wrestlers'][0]['wrestler']['id']);
+        $this->assertEquals($wrestler->name, $reignData['wrestlers'][0]['wrestler']['name']); // Uses name attribute
+        $this->assertStringContainsString('wrestlers', $reignData['wrestlers'][0]['wrestler']['detail_url']);
     }
 
     #[Test]
@@ -248,11 +253,11 @@ class ResourceIntegrationTest extends TestCase
             'reign_number' => 1,
         ]);
 
-        $championship->load(['titleReigns.wrestler.primaryName']);
+        $championship->load(['titleReigns.titleReignWrestlers.wrestler.primaryName']);
         $resource = new ChampionshipResource($championship);
         $data     = $resource->toArray(new Request);
 
-        $nestedWrestler = $data['title_reigns'][0]['wrestler'];
+        $nestedWrestler = $data['title_reigns'][0]['wrestlers'][0]['wrestler'];
         $this->assertArrayHasKey('detail_url', $nestedWrestler);
         $this->assertStringContainsString('wrestlers', $nestedWrestler['detail_url']);
     }

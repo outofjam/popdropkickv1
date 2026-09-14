@@ -18,16 +18,23 @@ class UpdateTitleReignRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'championship_id'         => ['sometimes', 'exists:championships,id'],
-            'wrestler_id'             => ['sometimes', 'exists:wrestlers,id'], // if you allow changing the wrestler
-            'won_on'                  => ['sometimes', 'date'],
-            'won_at'                  => ['sometimes', 'nullable', 'string', 'max:255'],
-            'lost_on'                 => ['sometimes', 'nullable', 'date', 'after_or_equal:won_on'],
-            'lost_at'                 => ['sometimes', 'nullable', 'string', 'max:255'],
-            'vacancy_reason'          => ['sometimes', 'nullable', 'string', 'max:255'],
-            'win_type'                => ['sometimes', new Enum(WinType::class)],
-            'reign_number'            => ['sometimes', 'integer', 'min:1'],
+            'championship_id' => ['sometimes', 'exists:championships,id'],
+            'wrestler_id' => ['sometimes', 'exists:wrestlers,id'], // if you allow changing the wrestler
+            'team_id' => ['sometimes', 'nullable', 'exists:teams,id'],
+            'won_on' => ['sometimes', 'date'],
+            'won_at' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'lost_on' => ['sometimes', 'nullable', 'date', 'after_or_equal:won_on'],
+            'lost_at' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'vacancy_reason' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'win_type' => ['sometimes', new Enum(WinType::class)],
+            'reign_number' => ['sometimes', 'integer', 'min:1'],
             'wrestler_name_id_at_win' => ['sometimes', 'nullable', 'exists:wrestler_names,id'],
+
+            // Optional co-champions. When present, replaces the reign's
+            // existing set of non-primary participants.
+            'participants' => ['sometimes', 'nullable', 'array'],
+            'participants.*.wrestler_id' => ['required', 'distinct', 'exists:wrestlers,id'],
+            'participants.*.wrestler_name_id_at_win' => ['nullable', 'exists:wrestler_names,id'],
         ];
     }
 
@@ -50,6 +57,7 @@ class UpdateTitleReignRequest extends FormRequest
 
             if (! $alias) {
                 $v->errors()->add('wrestler_name_id_at_win', 'Selected alias was not found.');
+
                 return;
             }
 
@@ -61,6 +69,7 @@ class UpdateTitleReignRequest extends FormRequest
 
             if (! $reign) {
                 $v->errors()->add('reign', 'Unable to resolve the title reign from the route.');
+
                 return;
             }
 
@@ -72,6 +81,43 @@ class UpdateTitleReignRequest extends FormRequest
                     'wrestler_name_id_at_win',
                     'The alias must belong to the reign’s wrestler.'
                 );
+            }
+        });
+
+        $validator->after(function ($v) {
+            if (! $this->has('participants')) {
+                return;
+            }
+
+            $routeReign = $this->route('reign');
+            $reign = $routeReign instanceof TitleReign
+                ? $routeReign
+                : TitleReign::query()->find($routeReign);
+
+            $primaryWrestlerId = $this->input('wrestler_id', $reign?->wrestler_id);
+
+            foreach ((array) $this->input('participants', []) as $index => $participant) {
+                $participantWrestlerId = $participant['wrestler_id'] ?? null;
+
+                if ($primaryWrestlerId && $participantWrestlerId === $primaryWrestlerId) {
+                    $v->errors()->add("participants.{$index}.wrestler_id", 'This wrestler is already the reign’s primary participant.');
+
+                    continue;
+                }
+
+                $aliasId = $participant['wrestler_name_id_at_win'] ?? null;
+                if (! $aliasId || ! $participantWrestlerId) {
+                    continue;
+                }
+
+                $belongs = WrestlerName::query()
+                    ->whereKey($aliasId)
+                    ->where('wrestler_id', $participantWrestlerId)
+                    ->exists();
+
+                if (! $belongs) {
+                    $v->errors()->add("participants.{$index}.wrestler_name_id_at_win", 'Alias does not belong to this wrestler.');
+                }
             }
         });
     }

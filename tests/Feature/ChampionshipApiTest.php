@@ -157,9 +157,9 @@ class ChampionshipApiTest extends TestCase
         $response = $this->getJson("/api/championships/{$championship->slug}");
 
         $response->assertStatus(200)
-            ->assertJsonPath('meta.reign_stats.longest_reign.wrestler.id', $longestReigning->id)
+            ->assertJsonPath('meta.reign_stats.longest_reign.wrestlers.0.id', $longestReigning->id)
             ->assertJsonPath('meta.reign_stats.longest_reign.reign_length_in_days', 59)
-            ->assertJsonPath('meta.reign_stats.shortest_reign.wrestler.id', $frequentChamp->id)
+            ->assertJsonPath('meta.reign_stats.shortest_reign.wrestlers.0.id', $frequentChamp->id)
             ->assertJsonPath('meta.reign_stats.shortest_reign.reign_length_in_days', 3)
             ->assertJsonPath('meta.reign_stats.most_reigns.wrestler.id', $frequentChamp->id)
             ->assertJsonPath('meta.reign_stats.most_reigns.reign_count', 2);
