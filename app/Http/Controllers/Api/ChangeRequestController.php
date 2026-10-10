@@ -28,10 +28,6 @@ class ChangeRequestController extends Controller
 
     /**
      * Get pending change requests for review
-     *
-     * @group Change Requests
-     *
-     * @authenticated
      */
     public function index(IndexChangeRequestsRequest $request): JsonResponse
     {
