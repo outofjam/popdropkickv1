@@ -29,10 +29,6 @@ class ChampionshipController extends Controller
      * List all championships
      *
      * Returns a paginated list of championships across all promotions.
-     *
-     * @group Championships
-     *
-     * @queryParam per_page int Number of results per page. Defaults to 15. Example: 20
      */
     public function index(): JsonResponse
     {
@@ -47,29 +43,6 @@ class ChampionshipController extends Controller
      * Create a new championship for a promotion
      *
      * Creates a new championship under the given promotion.
-     *
-     * @group Championships
-     *
-     * @authenticated
-     *
-     * @urlParam promotion int required The ID of the promotion. Example: 3
-     *
-     * @bodyParam name string required The name of the championship. Example: Intercontinental Championship
-     * @bodyParam introduced_on date required The date the championship was introduced. Example: 1990-07-01
-     * @bodyParam retired_on date The date the championship was retired (if applicable). Example: 2001-03-15
-     *
-     * @response 201 {
-     *   "success": true,
-     *   "message": "Championship Created",
-     *   "data": {
-     *     "id": 1,
-     *     "name": "Intercontinental Championship",
-     *     "slug": "intercontinental-championship",
-     *     "introduced_on": "1990-07-01",
-     *     "retired_on": null,
-     *     "promotion_id": 3
-     *   }
-     * }
      */
     public function store(StoreChampionshipRequest $request, Promotion $promotion): JsonResponse
     {
@@ -87,47 +60,6 @@ class ChampionshipController extends Controller
      * Get a championship by ID or slug
      *
      * Returns details about a specific championship, including its promotion and title reign history.
-     *
-     * @group Championships
-     *
-     * @urlParam identifier string required The ID or slug of the championship. Example: intercontinental-championship
-     *
-     * @response 200 {
-     *   "success": true,
-     *   "message": null,
-     *   "data": {
-     *     "id": 1,
-     *     "name": "Intercontinental Championship",
-     *     "slug": "intercontinental-championship",
-     *     "introduced_on": "1990-07-01",
-     *     "retired_on": null,
-     *     "promotion": {
-     *       "id": 3,
-     *       "name": "WWE",
-     *       "slug": "wwe"
-     *     },
-     *     "title_reigns": [
-     *       {
-     *         "id": 1,
-     *         "wrestler": {
-     *           "id": 5,
-     *           "slug": "bret-hart"
-     *         },
-     *         "won_on": "1991-08-26",
-     *         "lost_on": "1992-04-05"
-     *       },
-     *       ...
-     *     ]
-     *   },
-     *   "meta": {
-     *     "counts": {
-     *       "title_reigns": 15
-     *     }
-     *   }
-     * }
-     * @response 404 {
-     *   "message": "Championship not found"
-     * }
      */
     public function show(string $identifier): JsonResponse
     {
@@ -149,47 +81,6 @@ class ChampionshipController extends Controller
 
     /**
      * Update a championship by ID or slug.
-     *
-     * @group Championships
-     *
-     * @urlParam identifier string required The ID or slug of the championship. Example: intercontinental-championship
-     *
-     * @response 200 {
-     *   "success": true,
-     *   "message": null,
-     *   "data": {
-     *     "id": 1,
-     *     "name": "Intercontinental Championship",
-     *     "slug": "intercontinental-championship",
-     *     "introduced_on": "1990-07-01",
-     *     "retired_on": null,
-     *     "promotion": {
-     *       "id": 3,
-     *       "name": "WWE",
-     *       "slug": "wwe"
-     *     },
-     *     "title_reigns": [
-     *       {
-     *         "id": 1,
-     *         "wrestler": {
-     *           "id": 5,
-     *           "slug": "bret-hart"
-     *         },
-     *         "won_on": "1991-08-26",
-     *         "lost_on": "1992-04-05"
-     *       },
-     *       ...
-     *     ]
-     *   },
-     *   "meta": {
-     *     "counts": {
-     *       "title_reigns": 15
-     *     }
-     *   }
-     * }
-     * @response 404 {
-     *   "message": "Championship not found"
-     * }
      */
     public function update(UpdateChampionshipRequest $request, string $identifier): JsonResponse
     {
@@ -210,14 +101,6 @@ class ChampionshipController extends Controller
      * Toggle Championship  Active
      *
      * Toggles a championship between active and inactive
-     *
-     * @group Championships
-     *
-     * @urlParam identifier string required The ID or slug of the championship. Example: intercontinental-championship
-     *
-     * @response 404 {
-     *   "message": "Championship not found"
-     * }
      */
     public function toggleActive(Championship $championship): JsonResponse
     {

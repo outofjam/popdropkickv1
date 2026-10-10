@@ -27,21 +27,13 @@ class PromotionController extends Controller
      * List all promotions
      *
      * Returns a paginated list of promotions with associated counts.
-     *
-     * @group Promotions
-     *
-     * @authenticated
-     *
-     * @queryParam per_page int Number of results per page. Defaults to 15. Example: 20
-     *
-     * @response PromotionListResource // 1 - PHPDoc
      */
     public function index(): JsonResponse
     {
         // You can get perPage from request query, fallback to 15
         $perPage = request()->query('per_page', 5);
 
-        $promotions = $this->service->getPaginatedWithCounts((int)$perPage);
+        $promotions = $this->service->getPaginatedWithCounts((int) $perPage);
 
         return $this->ok(PromotionListResource::collection($promotions));
     }
@@ -50,20 +42,6 @@ class PromotionController extends Controller
      * Get a single promotion by ID or slug
      *
      * Returns detailed info about a promotion including counts of active and inactive wrestlers.
-     *
-     * @group Promotions
-     *
-     * @authenticated
-     *
-     * @urlParam identifier string required The promotion ID or slug. Example: world-wrestling-alliance
-     *
-     * @queryParam include_inactive boolean Whether to include inactive wrestlers in the count. Example: true
-     *
-     * @response PromotionResource // 1 - PHPDoc
-     * @response 404 {
-     *   "success": false,
-     *   "message": "Promotion not found"
-     * }
      */
     public function show(string $identifier): JsonResponse
     {
@@ -71,7 +49,7 @@ class PromotionController extends Controller
 
         $promotion = $this->service->findByIdOrSlugCached($identifier, $includeInactive);
 
-        if (!$promotion) {
+        if (! $promotion) {
             return $this->error('Promotion not found', 404);
         }
 
@@ -85,7 +63,7 @@ class PromotionController extends Controller
             'inactive_wrestlers_included' => $includeInactive,
         ];
 
-        if ($counts['inactive'] > 0 && !$includeInactive) {
+        if ($counts['inactive'] > 0 && ! $includeInactive) {
             $meta['inactive_wrestlers_exist'] = true;
             $meta['inactive_wrestlers_hint'] = 'Add ?include_inactive=true to see inactive wrestlers';
         }
@@ -97,32 +75,10 @@ class PromotionController extends Controller
         );
     }
 
-
-
     /**
      * Create a new promotion
      *
      * Stores a new wrestling promotion.
-     *
-     * @group Promotions
-     *
-     * @authenticated
-     *
-     * @bodyParam name string required The name of the promotion. Example: World Wrestling Alliance
-     * @bodyParam founded date required The date the promotion was founded. Example: 1999-04-01
-     * @bodyParam retired date The date the promotion was retired (if applicable). Example: 2009-06-30
-     *
-     * @response 201 {
-     *   "success": true,
-     *   "message": null,
-     *   "data": {
-     *     "id": 1,
-     *     "name": "World Wrestling Alliance",
-     *     "slug": "world-wrestling-alliance",
-     *     "founded": "1999-04-01",
-     *     "retired": null
-     *   }
-     * }
      */
     public function store(StorePromotionRequest $request): JsonResponse
     {
@@ -133,12 +89,6 @@ class PromotionController extends Controller
 
     /**
      * List a promotion's championships (active and inactive).
-     *
-     * @group Promotions
-     *
-     * @urlParam identifier string required The promotion ID or slug. Example: world-wrestling-alliance
-     *
-     * @queryParam per_page int Number of results per page. Defaults to 15. Example: 20
      */
     public function championships(string $identifier): JsonResponse
     {
@@ -159,13 +109,6 @@ class PromotionController extends Controller
      * List a promotion's wrestlers.
      *
      * Returns active wrestlers only unless include_inactive=true is passed.
-     *
-     * @group Promotions
-     *
-     * @urlParam identifier string required The promotion ID or slug. Example: world-wrestling-alliance
-     *
-     * @queryParam include_inactive boolean Whether to include inactive wrestlers. Example: true
-     * @queryParam per_page int Number of results per page. Defaults to 15. Example: 20
      */
     public function wrestlers(string $identifier): JsonResponse
     {
